@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lamsa/salonCard.dart';
+import 'features/customer_dashboard/view/pages/salon_list_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -8,80 +8,53 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
-      theme: ThemeData(
-
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'منصة لمسة'),
+      title: 'منصة لمسة',
       builder: (context, child) {
         return Directionality(
           textDirection: TextDirection.rtl,
           child: child!,
         );
       },
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.pink),
+        appBarTheme: const AppBarTheme(
+          centerTitle: true,
+        ),
+      ),
+      home: const MyHomePage(title: 'منصة لمسة'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
+class MyHomePage extends StatelessWidget {
   const MyHomePage({super.key, required this.title});
 
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-
-      _counter++;
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: Text(title),
       ),
-      body: ListView(
-        children: [
-          SalonCard(
-            title: "صالون لمسة",
-            description: "لخدمات المكياج والتنظيف",
-          ),
-          SalonCard(
-            title: "صالون مكه",
-            description: "لخدمات القص",
-          ),
-          SalonCard(
-            title: "صالون المدينه",
-            description: "لخدمات المكياج والتنظيف",
-          ),
-        ],
-      ),
+      body: const SalonListPage(),
     );
   }
 }
+
+// 172.20.10.2
+
+
+//✔ قائمة الصالونات
+// ✔ صفحة تفاصيل الصالون
+// ✔ عرض الخدمات
+// ✔ اختيار الخدمات
+// ✔ اختيار التاريخ
+// ✔ اختيار الوقت
+// ✔ حساب السعر
+// ✔ تأكيد الحجز
