@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:lamsa/features/owner_dashboard/view/owner_dashboard_screen.dart';
+import 'package:lamsa/features/owner_dashboard/view/owner_navigation_screen.dart';
 import 'features/customer_dashboard/view/pages/salon_list_page.dart';
 
 void main() {
@@ -42,7 +44,9 @@ class MyHomePage extends StatelessWidget {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(title),
       ),
-      body: const SalonListPage(),
+      // body: const SalonListPage(), // for customer
+      // body: const OwnerDashboardScreen(), //for dashboard screen
+      body: const OwnerNavigationScreen(), // to navigate
     );
   }
 }
