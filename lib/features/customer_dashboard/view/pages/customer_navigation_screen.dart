@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:lamsa/features/customer_dashboard/view/pages/profile_page.dart';
 import 'package:lamsa/features/customer_dashboard/view/pages/salon_list_page.dart';
 
 
-class OwnerNavigationScreen extends StatefulWidget {
-  const OwnerNavigationScreen({super.key});
+class CustomerNavigationScreen extends StatefulWidget {
+  const CustomerNavigationScreen({super.key});
 
   @override
-  State<OwnerNavigationScreen> createState() => _OwnerNavigationScreenState();
+  State<CustomerNavigationScreen> createState() => _CustomerNavigationScreenState();
 }
 
-class _OwnerNavigationScreenState extends State<OwnerNavigationScreen> {
+class _CustomerNavigationScreenState extends State<CustomerNavigationScreen> {
 
   int currentIndex = 0;
 
@@ -20,6 +21,7 @@ class _OwnerNavigationScreenState extends State<OwnerNavigationScreen> {
     super.initState();
     pages = const [
       SalonListPage(),
+      ProfilePage()
     ];
   }
 
@@ -50,6 +52,13 @@ class _OwnerNavigationScreenState extends State<OwnerNavigationScreen> {
               icon: Icon(Icons.home_outlined),
               activeIcon: Icon(Icons.home),
               label: "الصفحة الرئيسية"
+          ),
+
+          BottomNavigationBarItem(
+            // icon: Icon(Icons.dashboard),
+              icon: Icon(Icons.person_2_outlined),
+              activeIcon: Icon(Icons.person_2),
+              label: "الملف الشخصي"
           ),
 
         ],

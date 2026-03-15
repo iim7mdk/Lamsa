@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:lamsa/features/owner_dashboard/view/owner_dashboard_screen.dart';
-import 'package:lamsa/features/owner_dashboard/view/owner_navigation_screen.dart';
-import 'features/customer_dashboard/view/pages/salon_list_page.dart';
+import 'package:lamsa/features/customer_dashboard/view/pages/customer_navigation_screen.dart';
+// import 'package:lamsa/features/owner_dashboard/view/owner_navigation_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 void main() {
   runApp(const MyApp());
@@ -46,7 +47,8 @@ class MyHomePage extends StatelessWidget {
       ),
       // body: const SalonListPage(), // for customer
       // body: const OwnerDashboardScreen(), //for dashboard screen
-      body: const OwnerNavigationScreen(), // to navigate
+      // body: const OwnerNavigationScreen(), // to navigate Owner
+      body: const CustomerNavigationScreen(), // to navigate Customer
     );
   }
 }

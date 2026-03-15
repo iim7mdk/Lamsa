@@ -7,7 +7,7 @@ class OwnerProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    const String ownerName = "فاطمة";
+    // const String ownerName = "فاطمة";
     const String salonName = "صالون لمسات";
     const String phone = "+967 777 123 456";
     const String email = "owner@lamsa.com";
