@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lamsa/features/auth/auth_service.dart';
 import 'widgets/profle_info_row.dart';
 
 class OwnerProfileScreen extends StatelessWidget {
@@ -21,7 +22,7 @@ class OwnerProfileScreen extends StatelessWidget {
         child: Column(
           children: [
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 100),
 
             Card(
               child: Padding(
@@ -67,10 +68,34 @@ class OwnerProfileScreen extends StatelessWidget {
                       value: workingHours,
                     ),
 
+                    SizedBox(height: 40),
+                    
+
                   ],
                 ),
               ),
             ),
+
+            const SizedBox(height: 20),
+
+            ElevatedButton(
+                 onPressed: () async {
+
+                  Navigator.pop(context); // يغلق القائمة
+
+                  await AuthService().signOut();
+
+                  if (!context.mounted) return;
+
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    '/decide',
+                        (route) => false,
+                  );
+                },
+                child: Text('تسجيل الخروج')
+            )
+
           ],
         ),
       ),

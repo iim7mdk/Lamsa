@@ -53,10 +53,10 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyB6KjWEDeAhNpwIlucx0NyCqyeDvQkj-Qo',
-    appId: '1:45720981511:android:8a22dfadb02b38c7cbdaa2',
-    messagingSenderId: '45720981511',
-    projectId: 'lamsa-hadramout',
-    storageBucket: 'lamsa-hadramout.firebasestorage.app',
+    apiKey: 'AIzaSyDVcgloD2fqDDvEP6L9lSsU76lzPgHc7HQ',
+    appId: '1:813800603438:android:1914ae0016a0f09edf84bf',
+    messagingSenderId: '813800603438',
+    projectId: 'lamsa-cd636',
+    storageBucket: 'lamsa-cd636.firebasestorage.app',
   );
 }

@@ -1,73 +1,26 @@
 {
   "project_info": {
-    "project_number": "45720981511",
-    "project_id": "lamsa-hadramout",
-    "storage_bucket": "lamsa-hadramout.firebasestorage.app"
+    "project_number": "813800603438",
+    "project_id": "lamsa-cd636",
+    "storage_bucket": "lamsa-cd636.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:45720981511:android:8a22dfadb02b38c7cbdaa2",
+        "mobilesdk_app_id": "1:813800603438:android:1914ae0016a0f09edf84bf",
         "android_client_info": {
           "package_name": "com.example.lamsa"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "45720981511-jrm91tj20bhv21k1h5k4grb5r4aqucpf.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyB6KjWEDeAhNpwIlucx0NyCqyeDvQkj-Qo"
+          "current_key": "AIzaSyDVcgloD2fqDDvEP6L9lSsU76lzPgHc7HQ"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "45720981511-jrm91tj20bhv21k1h5k4grb5r4aqucpf.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:45720981511:android:9e6ca526e62f2d1ccbdaa2",
-        "android_client_info": {
-          "package_name": "com.example.salons"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "45720981511-at64ikco8ql8cggecrsvp2ao88a0t3ct.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.example.salons",
-            "certificate_hash": "bd115cbc453fdffcff2b49fdbdf32f06897db641"
-          }
-        },
-        {
-          "client_id": "45720981511-jrm91tj20bhv21k1h5k4grb5r4aqucpf.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyB6KjWEDeAhNpwIlucx0NyCqyeDvQkj-Qo"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "45720981511-jrm91tj20bhv21k1h5k4grb5r4aqucpf.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }

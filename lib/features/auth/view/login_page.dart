@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lamsa/features/auth/view/register_page.dart';
 import '../auth_service.dart';
 
 class LoginPage extends StatefulWidget {
@@ -67,6 +68,21 @@ class _LoginPageState extends State<LoginPage> {
                   ? const CircularProgressIndicator()
                   : const Text('Login'),
             ),
+
+            const SizedBox(height: 12),
+
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const RegisterPage(),
+                  ),
+                );
+              },
+              child: const Text('Create Account'),
+            ),
+
           ],
         ),
       ),

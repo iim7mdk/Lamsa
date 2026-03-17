@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lamsa/features/auth/auth_service.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -55,7 +56,20 @@ class ProfilePage extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.logout),
             title: const Text("تسجيل الخروج"),
-            onTap: () {},
+            onTap: () async {
+
+              Navigator.pop(context); // يغلق القائمة
+
+              await AuthService().signOut();
+
+              if (!context.mounted) return;
+
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                '/decide',
+                    (route) => false,
+              );
+            },
           ),
         ],
       ),
