@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lamsa/features/customer_dashboard/view/pages/profile_page.dart';
 import 'package:lamsa/features/customer_dashboard/view/pages/salon_list_page.dart';
+import 'package:lamsa/features/customer_dashboard/view/pages/my_bookings.dart';
 
 
 class CustomerNavigationScreen extends StatefulWidget {
@@ -21,7 +22,8 @@ class _CustomerNavigationScreenState extends State<CustomerNavigationScreen> {
     super.initState();
     pages = const [
       SalonListPage(),
-      ProfilePage()
+      ProfilePage(),
+      MyBookingsPage()
     ];
   }
 
@@ -59,6 +61,13 @@ class _CustomerNavigationScreenState extends State<CustomerNavigationScreen> {
               icon: Icon(Icons.person_2_outlined),
               activeIcon: Icon(Icons.person_2),
               label: "الملف الشخصي"
+          ),
+
+          BottomNavigationBarItem(
+            // icon: Icon(Icons.dashboard),
+              icon: Icon(Icons.book_outlined),
+              activeIcon: Icon(Icons.book),
+              label: "حجوزاتي"
           ),
 
         ],
