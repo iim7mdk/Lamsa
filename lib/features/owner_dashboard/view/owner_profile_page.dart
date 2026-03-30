@@ -92,6 +92,7 @@ class OwnerProfileScreen extends StatelessWidget {
                     '/decide',
                         (route) => false,
                   );
+
                 },
                 child: Text('تسجيل الخروج')
             )
