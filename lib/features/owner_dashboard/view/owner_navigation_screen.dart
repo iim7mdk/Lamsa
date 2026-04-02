@@ -33,6 +33,11 @@ class _OwnerNavigationScreenState extends State<OwnerNavigationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          currentIndex == 0 ? 'لوحة التحكم' : 'معلومات الصالون',
+        ),
+      ),
       body: IndexedStack(
         index: currentIndex,
         children: pages,

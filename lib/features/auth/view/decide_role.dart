@@ -33,8 +33,16 @@ class DecidePage extends StatelessWidget {
           } else if (role == 'customer') {
             return const CustomerNavigationScreen();
           } else {
+            // إذا لم يتم العثور على الدور أو كان غير صحيح
+            // توجيه المستخدم إلى صفحة تسجيل الدخول
+            Future.microtask(() {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginPage()),
+              );
+            });
             return const Scaffold(
-              body: Center(child: Text('Role not found')),
+              body: Center(child: Text('Role not found. Redirecting to login page...')),
             );
           }
         },

@@ -65,7 +65,7 @@ class _LoginPageState extends State<LoginPage> {
             ElevatedButton(
               onPressed: isLoading ? null : login,
               child: isLoading
-                  ? const CircularProgressIndicator()
+                  ? const CircularProgressIndicator(color: Colors.white)
                   : const Text('Login'),
             ),
 

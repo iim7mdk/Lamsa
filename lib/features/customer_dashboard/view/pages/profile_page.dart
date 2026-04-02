@@ -3,6 +3,7 @@ import 'package:lamsa/features/auth/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:lamsa/core/model/user_model.dart';
+import 'package:lamsa/features/auth/view/login_page.dart';
 
 
 class ProfilePage extends StatelessWidget {
@@ -27,6 +28,22 @@ class ProfilePage extends StatelessWidget {
     @override
   Widget build(BuildContext context) {
     return Scaffold(
+        appBar: AppBar(
+          title: const Text('الملف الشخصي'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.exit_to_app),
+              onPressed: () async {
+                await FirebaseAuth.instance.signOut(); // تسجيل الخروج من Firebase
+                // بعد تسجيل الخروج، العودة إلى شاشة تسجيل الدخول
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginPage()), // انتقل إلى صفحة تسجيل الدخول
+                );
+              },
+            ),
+          ],
+        ),
       body: FutureBuilder<UserModel?>(
         future: getUserData(),
         builder: (context, snapshot) {

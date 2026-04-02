@@ -36,6 +36,14 @@ class _CustomerNavigationScreenState extends State<CustomerNavigationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+
+      appBar: AppBar(
+        title: Text(
+          currentIndex == 0 ? 'الصفحة الرئيسية' :
+          currentIndex == 1 ? ' حجوزاتي' : 'الملف الشخصي',
+        ),
+      ),
+
       body: IndexedStack(
         index: currentIndex,
         children: pages,
@@ -56,18 +64,19 @@ class _CustomerNavigationScreenState extends State<CustomerNavigationScreen> {
               label: "الصفحة الرئيسية"
           ),
 
-          BottomNavigationBarItem(
-            // icon: Icon(Icons.dashboard),
-              icon: Icon(Icons.person_2_outlined),
-              activeIcon: Icon(Icons.person_2),
-              label: "الملف الشخصي"
-          ),
 
           BottomNavigationBarItem(
             // icon: Icon(Icons.dashboard),
               icon: Icon(Icons.book_outlined),
               activeIcon: Icon(Icons.book),
               label: "حجوزاتي"
+          ),
+
+          BottomNavigationBarItem(
+            // icon: Icon(Icons.dashboard),
+              icon: Icon(Icons.person_2_outlined),
+              activeIcon: Icon(Icons.person_2),
+              label: "الملف الشخصي"
           ),
 
         ],

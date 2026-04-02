@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../model/service_model.dart';
+import 'package:lamsa/features/owner_dashboard/model/service_model.dart';
 import 'booking_success_page.dart';
 
 class BookingPage extends StatefulWidget {
   final String salonTitle;
-  final List<ServiceModel> services;
+  final List<Service> services;
 
   const BookingPage({
     super.key,
@@ -179,13 +179,13 @@ class _BookingPageState extends State<BookingPage> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        Text(
-                          '$totalPriceر.س ',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold
-                          ),
-                        )
+                        // Text(
+                        //   '$totalPriceر.س ',
+                        //   style: const TextStyle(
+                        //     fontSize: 18,
+                        //     fontWeight: FontWeight.bold
+                        //   ),
+                        // )
                       ],
                     ) ,
                   ),
@@ -209,14 +209,14 @@ class _BookingPageState extends State<BookingPage> {
     ),
     );
   }
-int get totalPrice{
-  int total = 0;
-
-  for(var index in selectedServices){
-    total += widget.services[index].price;
-  }
-  return total;
-}
+// int get totalPrice{
+//   int total = 0;
+//
+//   for(var index in selectedServices){
+//     total += widget.services[index].price;
+//   }
+//   return total;
+// }
 
   void confirmBooking(){
     if(selectedServices.isEmpty){

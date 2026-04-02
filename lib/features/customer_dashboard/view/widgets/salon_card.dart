@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../model/salon_model.dart';
+import 'package:lamsa/features/owner_dashboard/model/salon_model.dart';
 import '../pages/salon_details_page.dart';
 
 class SalonCard extends StatelessWidget {
@@ -12,6 +12,9 @@ class SalonCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print('Salon Name: ${salon.salonName}');  // طباعة اسم الصالون
+    print('Number of services: ${salon.services.length}');  // طباعة عدد الخدمات
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       clipBehavior: Clip.antiAlias,
@@ -32,17 +35,17 @@ class SalonCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  salon.title,
+                  salon.salonName,
                   style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  salon.description,
-                  style: const TextStyle(fontSize: 14),
-                ),
+                // const SizedBox(height: 8),
+                // Text(
+                //   salon.description,
+                //   style: const TextStyle(fontSize: 14),
+                // ),
                 const SizedBox(height: 10),
                 Text(
                   'عدد الخدمات: ${salon.services.length}',

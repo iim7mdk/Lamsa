@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../model/salon_model.dart';
+import 'package:lamsa/features/owner_dashboard/model/salon_model.dart';
 
 import 'booking_page.dart';
 
@@ -15,7 +15,7 @@ class SalonDetailsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(salon.title),
+        title: Text(salon.salonName),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -25,18 +25,18 @@ class SalonDetailsPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                salon.title,
+                salon.salonName,
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 12),
-              Text(
-                salon.description,
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 20),
+              // Text(
+              //   salon.description,
+              //   style: const TextStyle(fontSize: 16),
+              // ),
+              // const SizedBox(height: 20),
               const Text(
                 'الخدمات المتاحة',
                 style: TextStyle(
@@ -68,7 +68,7 @@ class SalonDetailsPage extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => BookingPage(
-                          salonTitle: salon.title,
+                          salonTitle: salon.salonName,
                           services: salon.services,
                         ),
                       ),
