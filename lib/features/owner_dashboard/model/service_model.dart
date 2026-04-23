@@ -1,21 +1,26 @@
 class Service {
+  final String id;
   final String name;
-  final String price;
+  final double price;
 
   Service({
+    required this.id,
     required this.name,
     required this.price,
   });
 
-  // دالة ثابتة لتحويل خريطة إلى كائن Service
-  factory Service.fromMap(Map<String, dynamic> map) {
+  factory Service.fromMap(String id, Map<String, dynamic> map) {
+    final rawPrice = map['price'];
+
     return Service(
-      name: map['name'] ?? '',
-      price: map['price'] ?? '',
+      id: id,
+      name: map['name']?.toString() ?? '',
+      price: rawPrice is num
+          ? rawPrice.toDouble()
+          : double.tryParse(rawPrice?.toString() ?? '') ?? 0.0,
     );
   }
 
-  // دالة لتحويل الكائن إلى خريطة
   Map<String, dynamic> toMap() {
     return {
       'name': name,

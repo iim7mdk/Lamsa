@@ -12,7 +12,7 @@ class OwnerDashboardScreen  extends StatelessWidget {
       "phone": "789899899"
     },
     {
-      "name": "سارة علي",
+      "name": "سارة محمد",
       "date": "2026-03-16",
       "time": "12:30 PM",
       "receipt": "BNK789654",

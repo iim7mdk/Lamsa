@@ -1,32 +1,34 @@
 class BankAccount {
+  final String id;
   final String bankName;
-  final String accountNumber;
+  final int accountNumber;
   final String accountHolder;
-  // final String accountType;
 
   BankAccount({
+    required this.id,
     required this.bankName,
     required this.accountNumber,
     required this.accountHolder,
-    // required this.accountType,
   });
 
-  factory BankAccount.fromMap(Map<String, dynamic> map) {
+  factory BankAccount.fromMap(String id, Map<String, dynamic> map) {
+    final rawAccountNumber = map['accountNumber'];
+
     return BankAccount(
-      bankName: map['bank_name'] ?? '',
-      accountNumber: map['account_number'] ?? '',
-      accountHolder: map['account_holder'] ?? '',
-      // accountType: map['account_type'] ?? '',
+      id: id,
+      bankName: map['bankName'] ?? '',
+      accountNumber: rawAccountNumber is int
+          ? rawAccountNumber
+          : int.tryParse(rawAccountNumber?.toString() ?? '') ?? 0,
+      accountHolder: map['accountHolder'] ?? '',
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'bank_name': bankName,
-      'account_number': accountNumber,
-      'account_holder': accountHolder,
-      // 'account_type': accountType,
+      'bankName': bankName,
+      'accountNumber': accountNumber,
+      'accountHolder': accountHolder,
     };
   }
-
 }

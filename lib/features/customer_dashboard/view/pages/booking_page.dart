@@ -1,13 +1,21 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:lamsa/features/customer_dashboard/controller/booking_controller.dart';
+import 'package:lamsa/features/customer_dashboard/model/booking_model.dart';
+import 'package:lamsa/features/customer_dashboard/service/booking_service.dart';
 import 'package:lamsa/features/owner_dashboard/model/service_model.dart';
 import 'booking_success_page.dart';
 
 class BookingPage extends StatefulWidget {
+  final String salonId;
   final String salonTitle;
   final List<Service> services;
 
+  final BookingController _controller = BookingController(BookingService());
+
   const BookingPage({
     super.key,
+    required this.salonId,
     required this.salonTitle,
     required this.services,
   });
@@ -17,14 +25,14 @@ class BookingPage extends StatefulWidget {
 }
 
 class _BookingPageState extends State<BookingPage> {
-  final Set<int> selectedServices = {};
+  final Set<String> selectedServiceIds = {};
 
   DateTime? selectedDate;
 
   final List<String> availableTimes = [
     '10:00 ص',
     '11:00 ص',
-    '12:00 ص',
+    '12:00 م',
     '1:00 م',
     '2:00 م',
     '3:00 م',
@@ -81,20 +89,17 @@ class _BookingPageState extends State<BookingPage> {
             ),
             const SizedBox(height: 12),
 
-            ...widget.services.asMap().entries.map((entry) {
-              final index = entry.key;
-              final service = entry.value;
-
+            ...widget.services.map((service) {
               return CheckboxListTile(
-                value: selectedServices.contains(index),
+                value: selectedServiceIds.contains(service.id),
                 title: Text(service.name),
-                subtitle: Text('${service.price}ر.س '),
+                subtitle: Text('${service.price} ر.س'),
                 onChanged: (value) {
                   setState(() {
                     if (value == true) {
-                      selectedServices.add(index);
+                      selectedServiceIds.add(service.id);
                     } else {
-                      selectedServices.remove(index);
+                      selectedServiceIds.remove(service.id);
                     }
                   });
                 },
@@ -179,13 +184,13 @@ class _BookingPageState extends State<BookingPage> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        // Text(
-                        //   '$totalPriceر.س ',
-                        //   style: const TextStyle(
-                        //     fontSize: 18,
-                        //     fontWeight: FontWeight.bold
-                        //   ),
-                        // )
+                        Text(
+                          '$totalPrice ر.س',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ],
                     ) ,
                   ),
@@ -194,14 +199,41 @@ class _BookingPageState extends State<BookingPage> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                      onPressed: confirmBooking,
+
+                      onPressed: () async {
+                        final error = await _controller.confirmBooking(
+                          customerId: 'currentUserId',
+                          salonId: widget.salonId,
+                          serviceIds: selectedServiceIds.toList(),
+                          totalPrice: totalPrice,
+                          selectedDate: selectedDate,
+                          selectedTime: selectedTime,
+                        );
+
+                        if (!context.mounted) return;
+
+                        if (error != null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(error)),
+                          );
+                          return;
+                        }
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const BookingSuccessPage(),
+                          ),
+                        );
+                      },
+
                       child: const Text('تأكيد الحجز')
                   ),
                 ),
 
               ],
             ),
-            Text('عدد الخدمات المختارة: ${selectedServices.length}'),
+            Text('عدد الخدمات المختارة: ${selectedServiceIds.length}'),
 
           ],
         ),
@@ -209,42 +241,87 @@ class _BookingPageState extends State<BookingPage> {
     ),
     );
   }
-// int get totalPrice{
-//   int total = 0;
-//
-//   for(var index in selectedServices){
-//     total += widget.services[index].price;
-//   }
-//   return total;
-// }
+  double get totalPrice {
+    double total = 0;
 
-  void confirmBooking(){
-    if(selectedServices.isEmpty){
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('اختاري خدمة واحدة على الاقل')),
-      );
-      return;
+    for (final service in widget.services) {
+      if (selectedServiceIds.contains(service.id)) {
+        total += service.price;
+      }
     }
 
-    if (selectedDate == null){
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('اختاري تاريخ الحجز')),
-      );
-      return;
-    }
-
-    if (selectedTime == null){
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('اختاري وقت الحجز')),
-      );
-      return;
-    }
-
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => const BookingSuccessPage(),
-        )
-    );
+    return total;
   }
+
+  // Future<void> confirmBooking() async {
+  //   if (selectedServiceIds.isEmpty) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text('اختاري خدمة واحدة على الأقل')),
+  //     );
+  //     return;
+  //   }
+  //
+  //   if (selectedDate == null) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text('اختاري تاريخ الحجز')),
+  //     );
+  //     return;
+  //   }
+  //
+  //   if (selectedTime == null) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text('اختاري وقت الحجز')),
+  //     );
+  //     return;
+  //   }
+  //
+  //   final appointmentAt = _combineDateAndTime(selectedDate!, selectedTime!);
+  //
+  //   final booking = BookingModel(
+  //     id: '',
+  //     customerId: 'currentUserId',
+  //     salonId: widget.salonId,
+  //     serviceIds: selectedServiceIds.toList(),
+  //     totalPrice: totalPrice,
+  //     bankReceiptNumber: null,
+  //     appointmentAt: appointmentAt,
+  //     status: 'pending',
+  //     createdAt: DateTime.now(),
+  //   );
+  //
+  //   await FirebaseFirestore.instance
+  //       .collection('bookings')
+  //       .add(booking.toMap());
+  //
+  //   Navigator.push(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder: (context) => const BookingSuccessPage(),
+  //     ),
+  //   );
+  // }
+
+  // DateTime _combineDateAndTime(DateTime date, String time) {
+  //   final parts = time.split(' ');
+  //   final clock = parts[0];
+  //   final period = parts[1];
+  //
+  //   final hourMinute = clock.split(':');
+  //   int hour = int.parse(hourMinute[0]);
+  //   final minute = int.parse(hourMinute[1]);
+  //
+  //   if (period == 'م' && hour != 12) {
+  //     hour += 12;
+  //   } else if (period == 'ص' && hour == 12) {
+  //     hour = 0;
+  //   }
+  //
+  //   return DateTime(
+  //     date.year,
+  //     date.month,
+  //     date.day,
+  //     hour,
+  //     minute,
+  //   );
+  // }
 }

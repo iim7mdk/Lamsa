@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:lamsa/features/auth/view/decide_role.dart';
 import 'package:lamsa/features/auth/view/login_page.dart';
 import 'package:lamsa/features/auth/view/register_page.dart';
+import 'package:lamsa/features/owner_dashboard/view/AddSalonScreen.dart';
+import 'package:lamsa/features/owner_dashboard/view/add_services_screen.dart';
+import 'package:lamsa/features/owner_dashboard/view/add_bank_screen.dart';
+import 'package:lamsa/features/owner_dashboard/view/owner_profile_page.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -28,6 +32,10 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
         '/decide': (context) => const DecidePage(),
+        '/addSalon': (context) => AddSalonScreen(),
+        '/ownerProfile': (context) => const OwnerProfileScreen(),  // إضافة هذا المسار
+        '/addService': (context) => const AddServicesScreen(),
+        '/addBank': (context) => const AddBankScreen(),
       },
     );
   }

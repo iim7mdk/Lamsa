@@ -13,52 +13,51 @@ class SalonListPage extends StatelessWidget {
     try{
       final querySnapshot = await FirebaseFirestore.instance.collection('salons').get();
 
-      print('Number of salons in Firestore: ${querySnapshot.docs.length}');  // طباعة عدد الصالونات
+      // print('Number of salons in Firestore: ${querySnapshot.docs.length}');  // طباعة عدد الصالونات
 
       return Future.wait(querySnapshot.docs.map((doc) async {
-
-        // استخراج البيانات من الوثيقة (Document) في Firestore
-        var data = doc.data();
+        final data = doc.data();
 
         // جلب الخدمات ككولكشن
-        var servicesQuerySnapshot = await FirebaseFirestore.instance
+        final servicesQuerySnapshot = await FirebaseFirestore.instance
             .collection('salons')
             .doc(doc.id)
             .collection('services')
             .get();
 
-        print('Number of services for salon ${doc.id}: ${servicesQuerySnapshot.docs.length}'); // طباعة عدد الخدمات
-
-
-        var servicesList = servicesQuerySnapshot.docs.map((serviceDoc) {
-          var serviceData = serviceDoc.data();
-          print('Service data: $serviceData'); // طباعة بيانات الخدمة
-          return Service.fromMap(serviceData);
-        }).toList();
-
-        // جلب الحسابات البنكية ككولكشن
-        var bankAccountsQuerySnapshot = await FirebaseFirestore.instance
+        final bankAccountsQuerySnapshot = await FirebaseFirestore.instance
             .collection('salons')
             .doc(doc.id)
             .collection('bank_accounts')
             .get();
 
-        print('Number of bank accounts for salon ${doc.id}: ${bankAccountsQuerySnapshot.docs.length}'); // طباعة عدد الحسابات البنكية
+        final List<Service> servicesList = servicesQuerySnapshot.docs
+            .map((serviceDoc) => Service.fromMap(
+          serviceDoc.id,
+          serviceDoc.data(),
+        ))
+            .toList();
+
+        // جلب الحسابات البنكية ككولكشن
+        final List<BankAccount> bankAccountsList = bankAccountsQuerySnapshot.docs
+            .map((accountDoc) => BankAccount.fromMap(
+          accountDoc.id,
+          accountDoc.data(),
+        ))
+            .toList();
+
+        // print('Number of bank accounts for salon ${doc.id}: ${bankAccountsQuerySnapshot.docs.length}'); // طباعة عدد الحسابات البنكية
 
 
-        var bankAccountsList = bankAccountsQuerySnapshot.docs.map((accountDoc) {
-          var accountData = accountDoc.data();
-          print('Bank account data: $accountData'); // طباعة بيانات الحساب البنكي
-          return BankAccount.fromMap(accountData);
-        }).toList();
+
 
         return SalonModel(
-          salonName: data['salonName'],
-          phone: data['phone'],
-          email: data['email'],
-          location: data['location'],
-          workingHours: data['workingHours'],
-          ownerUid: data['ownerUid'],
+          salonName: data['salonName']?.toString() ?? '',
+          phone: data['phone']?.toString() ?? '',
+          email: data['email']?.toString() ?? '',
+          location: data['location']?.toString() ?? '',
+          workingHours: data['workingHours']?.toString() ?? '',
+          ownerUid: data['ownerUid']?.toString() ?? '',
           services: servicesList,
           bankAccounts: bankAccountsList,
           // description: data['description'],
@@ -81,7 +80,9 @@ class SalonListPage extends StatelessWidget {
         }
 
         if (snapshot.hasError) {
-          return Center(child: Text('حدث خطأ أثناء تحميل البيانات'));
+          return Center(
+            child: Text('حدث خطأ أثناء تحميل البيانات\n${snapshot.error}'),
+          );
         }
 
         if (snapshot.data == null || snapshot.data!.isEmpty) {
@@ -89,7 +90,7 @@ class SalonListPage extends StatelessWidget {
         }
 
         final salons = snapshot.data!;
-        print('Loaded salons: ${salons.length}'); // طباعة عدد الصالونات المحملة
+        // print('Loaded salons: ${salons.length}');
 
         return ListView.builder(
           itemCount: salons.length,

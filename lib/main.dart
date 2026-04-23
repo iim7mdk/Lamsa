@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:lamsa/core/app.dart';
-// import 'package:lamsa/features/customer_dashboard/view/pages/customer_navigation_screen.dart';
-// import 'package:lamsa/features/owner_dashboard/view/owner_navigation_screen.dart';
-// import 'package:lamsa/features/auth/view/decide_role.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
@@ -13,7 +10,6 @@ Future<void> main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-
     runApp(const MyApp());
   } catch (e){
     debugPrint("Firebase init error: $e");
@@ -31,6 +27,9 @@ Future<void> main() async {
 
 
 
+// import 'package:lamsa/features/customer_dashboard/view/pages/customer_navigation_screen.dart';
+// import 'package:lamsa/features/owner_dashboard/view/owner_navigation_screen.dart';
+// import 'package:lamsa/features/auth/view/decide_role.dart';
 //
 // class MyApp extends StatelessWidget {
 //   const MyApp({super.key});

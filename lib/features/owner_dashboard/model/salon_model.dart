@@ -25,16 +25,6 @@ class SalonModel {
   // ملاحظة: هنا يتم إضافة الخدمات بشكل منفصل باستخدام كولكشن داخل Firestore
   factory SalonModel.fromMap(Map<String, dynamic> map) {
 
-    var servicesList = map['services'] as List? ?? [];
-    var bankAccountsList = map['bankAccounts'] as List? ?? [];
-
-    // تحويل عناصر القائمة إلى الكائنات المناسبة
-    List<Service> services = servicesList.map((serviceData) => Service.fromMap(serviceData)).toList();
-    List<BankAccount> bankAccounts = bankAccountsList.map((accountData) => BankAccount.fromMap(accountData)).toList();
-
-    print('Salon Name: ${map['salonName']}');
-    print('Number of services: ${servicesList.length}');
-    print('Number of bank accounts: ${bankAccountsList.length}');
 
     return SalonModel(
       salonName: map['salonName'] ?? '',
@@ -43,8 +33,8 @@ class SalonModel {
       location: map['location'] ?? '',
       workingHours: map['workingHours'] ?? '',
       ownerUid: map['ownerUid'] ?? '',
-      services: services,  // نمررها هنا بدلاً من تركها فارغة
-      bankAccounts: bankAccounts,  // نمررها هنا بدلاً من تركها فارغة
+      services: [],
+      bankAccounts: [],
     );
   }
 

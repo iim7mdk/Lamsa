@@ -22,8 +22,8 @@ class _CustomerNavigationScreenState extends State<CustomerNavigationScreen> {
     super.initState();
     pages = const [
       SalonListPage(),
+      MyBookingsPage(),
       ProfilePage(),
-      MyBookingsPage()
     ];
   }
 
