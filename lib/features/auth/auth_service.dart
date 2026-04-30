@@ -128,6 +128,10 @@ class AuthService {
           errorMessage = 'البريد الإلكتروني غير مسجل';
         } else if (e.code == 'wrong-password') {
           errorMessage = 'كلمة المرور غير صحيحة';
+        } else if (e.code == 'invalid-credential') {
+          errorMessage = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+        } else if (e.code == 'invalid-email') {
+          errorMessage = 'صيغة البريد الإلكتروني غير صحيحة';
         }
       }
 
@@ -140,8 +144,13 @@ class AuthService {
     final user = _auth.currentUser;
     if (user == null) return null;
 
+    print("UID: ${user.uid}");
+
     final doc = await _firestore.collection('users').doc(user.uid).get();
     if (!doc.exists) return null;
+
+    print("DOC EXISTS: ${doc.exists}");
+    print("DATA: ${doc.data()}");
 
     return doc.data()?['role'];
   }
@@ -190,6 +199,7 @@ class AuthService {
       // print("Bank accounts count: ${bankAccounts.length}");
 
       return SalonModel(
+        id: salonDoc.id,
         salonName: data['salonName'] ?? '',
         phone: data['phone'] ?? '',
         email: data['email'] ?? '',

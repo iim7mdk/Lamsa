@@ -2,16 +2,18 @@ import 'package:lamsa/features/owner_dashboard/model/bank_account_model.dart';
 import 'package:lamsa/features/owner_dashboard/model/service_model.dart';
 
 class SalonModel {
+  final String id;
   final String salonName;
   final String phone;
   final String email;
   final String location;
   final String workingHours;
   final String ownerUid;
-  final List<Service> services;  // إضافة الخدمات
-  final List<BankAccount> bankAccounts;  // إضافة الحسابات البنكية
+  final List<Service> services;
+  final List<BankAccount> bankAccounts;
 
   SalonModel({
+    required this.id,
     required this.salonName,
     required this.phone,
     required this.email,
@@ -23,10 +25,11 @@ class SalonModel {
   });
 
   // ملاحظة: هنا يتم إضافة الخدمات بشكل منفصل باستخدام كولكشن داخل Firestore
-  factory SalonModel.fromMap(Map<String, dynamic> map) {
+  factory SalonModel.fromMap(Map<String, dynamic> map, String id) {
 
 
     return SalonModel(
+      id: id,
       salonName: map['salonName'] ?? '',
       phone: map['phone'] ?? '',
       email: map['email'] ?? '',

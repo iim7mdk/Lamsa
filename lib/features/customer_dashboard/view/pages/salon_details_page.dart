@@ -68,6 +68,7 @@ class SalonDetailsPage extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => BookingPage(
+                          salonId: salon.id,
                           salonTitle: salon.salonName,
                           services: salon.services,
                         ),

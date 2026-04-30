@@ -52,6 +52,7 @@ class SalonListPage extends StatelessWidget {
 
 
         return SalonModel(
+          id: doc.id,
           salonName: data['salonName']?.toString() ?? '',
           phone: data['phone']?.toString() ?? '',
           email: data['email']?.toString() ?? '',
@@ -59,7 +60,7 @@ class SalonListPage extends StatelessWidget {
           workingHours: data['workingHours']?.toString() ?? '',
           ownerUid: data['ownerUid']?.toString() ?? '',
           services: servicesList,
-          bankAccounts: bankAccountsList,
+          bankAccounts: [],
           // description: data['description'],
         );
       }).toList());

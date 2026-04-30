@@ -2,11 +2,11 @@ import 'package:lamsa/features/customer_dashboard/model/booking_model.dart';
 import 'package:lamsa/features/customer_dashboard/service/booking_service.dart';
 
 class BookingController {
-  final BookingService bookingService;
+  final BookingService _service;
 
-  BookingController(this.bookingService);
+  BookingController(this._service);
 
-  Future<String?> confirmBooking({
+  Future<String> confirmBooking({
     required String customerId,
     required String salonId,
     required List<String> serviceIds,
@@ -15,15 +15,15 @@ class BookingController {
     required String? selectedTime,
   }) async {
     if (serviceIds.isEmpty) {
-      return 'اختاري خدمة واحدة على الأقل';
+      throw Exception('اختاري خدمة واحدة على الأقل');
     }
 
     if (selectedDate == null) {
-      return 'اختاري تاريخ الحجز';
+      throw Exception('اختاري تاريخ الحجز');
     }
 
     if (selectedTime == null) {
-      return 'اختاري وقت الحجز';
+      throw Exception('اختاري وقت الحجز');
     }
 
     final appointmentAt = _combineDateAndTime(selectedDate, selectedTime);
@@ -40,9 +40,9 @@ class BookingController {
       createdAt: DateTime.now(),
     );
 
-    await bookingService.createBooking(booking);
+    final bookingId = await _service.createBooking(booking);
 
-    return null;
+    return bookingId;
   }
 
   DateTime _combineDateAndTime(DateTime date, String time) {
@@ -60,6 +60,12 @@ class BookingController {
       hour = 0;
     }
 
-    return DateTime(date.year, date.month, date.day, hour, minute);
+    return DateTime(
+      date.year,
+      date.month,
+      date.day,
+      hour,
+      minute,
+    );
   }
 }

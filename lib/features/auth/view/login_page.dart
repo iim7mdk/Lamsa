@@ -30,13 +30,18 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return; // من باب الامان( اذا كانت الصفحة غير مفتوحه )
       Navigator.pushReplacementNamed(context, '/decide');
     } catch (e) {
+      final message = e.toString().replaceFirst('Exception: ', '');
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
+        SnackBar(content: Text(message)),
       );
+
     } finally {
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 

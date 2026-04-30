@@ -1,17 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:lamsa/features/customer_dashboard/controller/booking_controller.dart';
 import 'package:lamsa/features/customer_dashboard/model/booking_model.dart';
 import 'package:lamsa/features/customer_dashboard/service/booking_service.dart';
 import 'package:lamsa/features/owner_dashboard/model/service_model.dart';
-import 'booking_success_page.dart';
+import 'payment_page.dart';
 
 class BookingPage extends StatefulWidget {
   final String salonId;
   final String salonTitle;
   final List<Service> services;
 
-  final BookingController _controller = BookingController(BookingService());
+  // final BookingController _controller = BookingController(BookingService());
 
   const BookingPage({
     super.key,
@@ -25,6 +26,8 @@ class BookingPage extends StatefulWidget {
 }
 
 class _BookingPageState extends State<BookingPage> {
+  final BookingController _controller = BookingController(BookingService());
+
   final Set<String> selectedServiceIds = {};
 
   DateTime? selectedDate;
@@ -201,33 +204,58 @@ class _BookingPageState extends State<BookingPage> {
                   child: ElevatedButton(
 
                       onPressed: () async {
-                        final error = await _controller.confirmBooking(
-                          customerId: 'currentUserId',
-                          salonId: widget.salonId,
-                          serviceIds: selectedServiceIds.toList(),
-                          totalPrice: totalPrice,
-                          selectedDate: selectedDate,
-                          selectedTime: selectedTime,
-                        );
+                        try {
+                          final user = FirebaseAuth.instance.currentUser;
 
-                        if (!context.mounted) return;
+                          if (user == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('يجب تسجيل الدخول قبل إنشاء الحجز'),
+                              ),
+                            );
+                            return;
+                          }
 
-                        if (error != null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(error)),
+                          final bookingId = await _controller.confirmBooking(
+                            customerId: user.uid,
+                            salonId: widget.salonId,
+                            serviceIds: selectedServiceIds.toList(),
+                            totalPrice: totalPrice,
+                            selectedDate: selectedDate,
+                            selectedTime: selectedTime,
                           );
-                          return;
-                        }
 
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const BookingSuccessPage(),
-                          ),
-                        );
+                          if (!context.mounted) return;
+
+                          if (bookingId.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('حدث خطأ أثناء إنشاء الحجز'),
+                              ),
+                            );
+                            return;
+                          }
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PaymentPage(
+                                bookingId: bookingId,
+                              ),
+                            ),
+                          );
+                        } catch (e) {
+                          if (!context.mounted) return;
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(e.toString().replaceFirst('Exception: ', '')),
+                            ),
+                          );
+                        }
                       },
 
-                      child: const Text('تأكيد الحجز')
+                      child: const Text('ادفع')
                   ),
                 ),
 
@@ -253,75 +281,4 @@ class _BookingPageState extends State<BookingPage> {
     return total;
   }
 
-  // Future<void> confirmBooking() async {
-  //   if (selectedServiceIds.isEmpty) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(content: Text('اختاري خدمة واحدة على الأقل')),
-  //     );
-  //     return;
-  //   }
-  //
-  //   if (selectedDate == null) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(content: Text('اختاري تاريخ الحجز')),
-  //     );
-  //     return;
-  //   }
-  //
-  //   if (selectedTime == null) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(content: Text('اختاري وقت الحجز')),
-  //     );
-  //     return;
-  //   }
-  //
-  //   final appointmentAt = _combineDateAndTime(selectedDate!, selectedTime!);
-  //
-  //   final booking = BookingModel(
-  //     id: '',
-  //     customerId: 'currentUserId',
-  //     salonId: widget.salonId,
-  //     serviceIds: selectedServiceIds.toList(),
-  //     totalPrice: totalPrice,
-  //     bankReceiptNumber: null,
-  //     appointmentAt: appointmentAt,
-  //     status: 'pending',
-  //     createdAt: DateTime.now(),
-  //   );
-  //
-  //   await FirebaseFirestore.instance
-  //       .collection('bookings')
-  //       .add(booking.toMap());
-  //
-  //   Navigator.push(
-  //     context,
-  //     MaterialPageRoute(
-  //       builder: (context) => const BookingSuccessPage(),
-  //     ),
-  //   );
-  // }
-
-  // DateTime _combineDateAndTime(DateTime date, String time) {
-  //   final parts = time.split(' ');
-  //   final clock = parts[0];
-  //   final period = parts[1];
-  //
-  //   final hourMinute = clock.split(':');
-  //   int hour = int.parse(hourMinute[0]);
-  //   final minute = int.parse(hourMinute[1]);
-  //
-  //   if (period == 'م' && hour != 12) {
-  //     hour += 12;
-  //   } else if (period == 'ص' && hour == 12) {
-  //     hour = 0;
-  //   }
-  //
-  //   return DateTime(
-  //     date.year,
-  //     date.month,
-  //     date.day,
-  //     hour,
-  //     minute,
-  //   );
-  // }
 }
