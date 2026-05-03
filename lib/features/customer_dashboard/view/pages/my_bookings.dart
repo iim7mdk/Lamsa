@@ -3,7 +3,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class MyBookingsPage extends StatelessWidget {
-  const MyBookingsPage({super.key});
+  final bool showAppBar;
+
+  const MyBookingsPage({
+    super.key,
+    this.showAppBar = true,
+  });
 
   Stream<QuerySnapshot<Map<String, dynamic>>> _myBookingsStream(String userId) {
     return FirebaseFirestore.instance
@@ -19,11 +24,12 @@ class MyBookingsPage extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        // appBar: AppBar(
-        //   title: const Text('حجوزاتي'),
-        //   centerTitle: true,
-        //   automaticallyImplyLeading: false,
-        // ),
+        appBar: showAppBar
+            ? AppBar(
+          title: const Text('حجوزاتي'),
+          centerTitle: true,
+        )
+            : null,
         body: user == null
             ? const Center(
           child: Text(

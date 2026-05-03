@@ -8,6 +8,8 @@ import '../../owner_dashboard/view/owner_navigation_screen.dart';
 class DecidePage extends StatelessWidget {
   const DecidePage({super.key});
 
+
+
   @override
   Widget build(BuildContext context) {
     final authService = AuthService();
@@ -29,12 +31,14 @@ class DecidePage extends StatelessWidget {
           final role = snapshot.data;
 
           if (role == 'owner') {
-            return const OwnerNavigationScreen();
+            final salonId = authService.currentUser!.uid;
+
+            return OwnerNavigationScreen(
+              salonId: salonId,
+            );
           } else if (role == 'customer') {
             return const CustomerNavigationScreen();
           } else {
-            // إذا لم يتم العثور على الدور أو كان غير صحيح
-            // توجيه المستخدم إلى صفحة تسجيل الدخول
             Future.microtask(() {
               Navigator.pushReplacement(
                 context,

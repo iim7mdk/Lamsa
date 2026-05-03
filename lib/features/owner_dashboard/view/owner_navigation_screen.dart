@@ -3,7 +3,13 @@ import 'package:lamsa/features/owner_dashboard/view/owner_dashboard_screen.dart'
 import 'package:lamsa/features/owner_dashboard/view/owner_profile_page.dart';
 
 class OwnerNavigationScreen extends StatefulWidget {
-  const OwnerNavigationScreen({super.key});
+
+  const OwnerNavigationScreen({
+    super.key,
+    required this.salonId,
+  });
+
+  final String salonId;
 
   @override
   State<OwnerNavigationScreen> createState() => _OwnerNavigationScreenState();
@@ -18,9 +24,11 @@ class _OwnerNavigationScreenState extends State<OwnerNavigationScreen> {
   @override
   void initState() {
     super.initState();
-    pages = const [
-      OwnerDashboardScreen(),
-      OwnerProfileScreen(),
+    pages = [
+      OwnerDashboardScreen(
+        salonId: widget.salonId,
+      ),
+      const OwnerProfileScreen(),
     ];
   }
 

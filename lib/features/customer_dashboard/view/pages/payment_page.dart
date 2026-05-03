@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:lamsa/features/customer_dashboard/view/pages/customer_navigation_screen.dart';
 import 'package:lamsa/features/customer_dashboard/view/pages/my_bookings.dart';
 
 // غيّر هذا المسار حسب مكان ملف BankAccount عندك
@@ -119,7 +120,7 @@ class _PaymentPageState extends State<PaymentPage> {
 
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
-          builder: (context) => const MyBookingsPage(),
+          builder: (context) => const CustomerNavigationScreen(initialIndex: 1),
         ),
             (route) => false,
       );
