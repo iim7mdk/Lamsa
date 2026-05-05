@@ -28,7 +28,7 @@ class BookingPage extends StatefulWidget {
 class _BookingPageState extends State<BookingPage> {
   final BookingController _controller = BookingController(BookingService());
 
-  final Set<String> selectedServiceIds = {};
+  final List<Service> selectedServices = [];
 
   DateTime? selectedDate;
 
@@ -94,15 +94,15 @@ class _BookingPageState extends State<BookingPage> {
 
             ...widget.services.map((service) {
               return CheckboxListTile(
-                value: selectedServiceIds.contains(service.id),
+                value: selectedServices.contains(service),
                 title: Text(service.name),
                 subtitle: Text('${service.price} ر.س'),
                 onChanged: (value) {
                   setState(() {
                     if (value == true) {
-                      selectedServiceIds.add(service.id);
+                      selectedServices.add(service);
                     } else {
-                      selectedServiceIds.remove(service.id);
+                      selectedServices.remove(service);
                     }
                   });
                 },
@@ -216,10 +216,22 @@ class _BookingPageState extends State<BookingPage> {
                             return;
                           }
 
+                          final userDoc = await FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(user.uid)
+                              .get();
+
+                          final userData = userDoc.data();
+
+                          final customerName = userData?['name'] ?? 'غير معروف';
+                          final customerPhone = userData?['phone'] ?? 'غير متوفر';
+
                           final bookingId = await _controller.confirmBooking(
                             customerId: user.uid,
+                            customerName: customerName,
+                            customerPhone: int.tryParse(customerPhone.toString()) ?? 0,
                             salonId: widget.salonId,
-                            serviceIds: selectedServiceIds.toList(),
+                            selectedServices: selectedServices.map((s) => s.name).toList(),
                             totalPrice: totalPrice,
                             selectedDate: selectedDate,
                             selectedTime: selectedTime,
@@ -261,7 +273,7 @@ class _BookingPageState extends State<BookingPage> {
 
               ],
             ),
-            Text('عدد الخدمات المختارة: ${selectedServiceIds.length}'),
+            Text('عدد الخدمات المختارة: ${selectedServices.length}'),
 
           ],
         ),
@@ -269,16 +281,12 @@ class _BookingPageState extends State<BookingPage> {
     ),
     );
   }
+
   double get totalPrice {
-    double total = 0;
-
-    for (final service in widget.services) {
-      if (selectedServiceIds.contains(service.id)) {
-        total += service.price;
-      }
-    }
-
-    return total;
+    return selectedServices.fold(
+      0,
+          (sum, service) => sum + service.price,
+    );
   }
 
 }

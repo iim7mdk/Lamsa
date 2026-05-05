@@ -8,13 +8,15 @@ class BookingController {
 
   Future<String> confirmBooking({
     required String customerId,
+    required String customerName,
+    required int customerPhone,
     required String salonId,
-    required List<String> serviceIds,
+    required List<String> selectedServices,
     required double totalPrice,
     required DateTime? selectedDate,
     required String? selectedTime,
   }) async {
-    if (serviceIds.isEmpty) {
+    if (selectedServices.isEmpty) {
       throw Exception('اختاري خدمة واحدة على الأقل');
     }
 
@@ -31,8 +33,10 @@ class BookingController {
     final booking = BookingModel(
       id: '',
       customerId: customerId,
+      customerName: customerName,
+      customerPhone: customerPhone,
       salonId: salonId,
-      serviceIds: serviceIds,
+      selectedServices: selectedServices,
       totalPrice: totalPrice,
       bankReceiptNumber: null,
       appointmentAt: appointmentAt,

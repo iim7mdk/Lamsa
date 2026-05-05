@@ -274,6 +274,40 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
 
                                             const SizedBox(height: 6),
 
+                                            const Text(
+                                              'الخدمات:',
+                                              style: TextStyle(fontWeight: FontWeight.bold),
+                                            ),
+
+                                            const SizedBox(height: 4),
+
+                                            Wrap(
+                                              spacing: 8,
+                                              runSpacing: 8,
+                                              children: booking.selectedServices.map((service) {
+                                                return Card(
+                                                  color: Colors.grey.shade100,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(8),
+                                                  ),
+                                                  child: Padding(
+                                                    padding: const EdgeInsets.symmetric(
+                                                      horizontal: 10,
+                                                      vertical: 6,
+                                                    ),
+                                                    child: Text(
+                                                      service,
+                                                      style: const TextStyle(
+                                                        fontSize: 13,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
+                                              }).toList(),
+                                            ),
+
+                                            const SizedBox(height: 6),
+
                                             Text(
                                               'التاريخ: ${_formatDate(booking.appointmentAt)}',
                                             ),
@@ -282,6 +316,15 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
                                             ),
 
                                             const SizedBox(height: 6),
+
+                                            Text(
+                                              'السعر الاجمالي: ${(booking.totalPrice)}',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+
+                                            const SizedBox(height: 12),
 
                                             Text(
                                               'رقم الإيصال البنكي: ${_receiptText(booking.bankReceiptNumber)}',
@@ -300,6 +343,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
                                             // ),
 
                                             const SizedBox(height: 12),
+
 
                                             Text(
                                               'الحالة: ${_statusLabel(booking.status)}',

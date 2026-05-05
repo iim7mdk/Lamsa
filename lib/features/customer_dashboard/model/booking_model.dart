@@ -3,8 +3,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class BookingModel {
   final String id;
   final String customerId;
+  final String customerName;
+  final int customerPhone;
   final String salonId;
-  final List<String> serviceIds;
+  final List<String> selectedServices;
   final double totalPrice;
   final String? bankReceiptNumber;
   final DateTime appointmentAt;
@@ -14,8 +16,10 @@ class BookingModel {
   const BookingModel({
     required this.id,
     required this.customerId,
+    required this.customerName,
+    required this.customerPhone,
     required this.salonId,
-    required this.serviceIds,
+    required this.selectedServices,
     required this.totalPrice,
     this.bankReceiptNumber,
     required this.appointmentAt,
@@ -27,8 +31,10 @@ class BookingModel {
     return BookingModel(
       id: id,
       customerId: map['customerId'] as String? ?? '',
+      customerName: map['customerName'] as String? ?? '',
+      customerPhone: map['customerPhone'] as int? ?? 0,
       salonId: map['salonId'] as String? ?? '',
-      serviceIds: List<String>.from(map['serviceIds'] ?? const []),
+      selectedServices: List<String>.from(map['selectedServices'] ?? const []),
       totalPrice: (map['totalPrice'] as num?)?.toDouble() ?? 0.0,
       bankReceiptNumber: map['bankReceiptNumber'] as String?,
       appointmentAt: (map['appointmentAt'] as Timestamp).toDate(),
@@ -40,8 +46,10 @@ class BookingModel {
   Map<String, dynamic> toMap() {
     return {
       'customerId': customerId,
+      'customerName': customerName,
+      'customerPhone': customerPhone,
       'salonId': salonId,
-      'serviceIds': serviceIds,
+      'selectedServices': selectedServices,
       'totalPrice': totalPrice,
       'bankReceiptNumber': bankReceiptNumber,
       'appointmentAt': Timestamp.fromDate(appointmentAt),
