@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lamsa/features/owner_dashboard/model/bank_account_model.dart';
 import 'package:lamsa/features/owner_dashboard/model/salon_model.dart';
 import 'package:lamsa/features/owner_dashboard/model/service_model.dart';
-
+import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -149,8 +149,8 @@ class AuthService {
     final doc = await _firestore.collection('users').doc(user.uid).get();
     if (!doc.exists) return null;
 
-    print("DOC EXISTS: ${doc.exists}");
-    print("DATA: ${doc.data()}");
+    // print("DOC EXISTS: ${doc.exists}");
+    // print("DATA: ${doc.data()}");
 
     return doc.data()?['role'];
   }
@@ -217,10 +217,15 @@ class AuthService {
 
   Future<void> sendPasswordResetEmail(String email) async {
     try {
-      await _auth.sendPasswordResetEmail(email: email);
-    } catch (e) {
-      print('Error sending password reset email: $e');
-      // يمكنك معالجة الخطأ هنا أو إظهار رسالة للمستخدم
+      await _auth.sendPasswordResetEmail(
+          email: email
+      );
+    } on FirebaseAuthException catch (e) {
+
+      print(e.code);
+
+      throw Exception(e.message);
+
     }
   }
 
