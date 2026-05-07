@@ -4,7 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:lamsa/core/model/user_model.dart';
 import 'package:lamsa/features/auth/view/login_page.dart';
-
+import 'package:lamsa/features/customer_dashboard/view/pages/my_bookings.dart';
+import 'edit_profile_page.dart';
+import 'settings_page.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -83,35 +85,62 @@ class ProfilePage extends StatelessWidget {
 
                   const SizedBox(height: 30),
 
-                  // ListTile(
-                  //   leading: const Icon(Icons.edit),
-                  //   title: const Text("تعديل الملف الشخصي"),
-                  //   onTap: () {},
-                  // ),
-                  //
-                  // ListTile(
-                  //   leading: const Icon(Icons.history),
-                  //   title: const Text("حجوزاتي"),
-                  //   onTap: () {},
-                  // ),
-                  //
-                  // ListTile(
-                  //   leading: const Icon(Icons.logout),
-                  //   title: const Text("تسجيل الخروج"),
-                  //   onTap: () async {
-                  //     Navigator.pop(context);
-                  //
-                  //     await AuthService().signOut();
-                  //
-                  //     if (!context.mounted) return;
-                  //
-                  //     Navigator.pushNamedAndRemoveUntil(
-                  //       context,
-                  //       '/decide',
-                  //           (route) => false,
-                  //     );
-                  //   },
-                  // ),
+                  ListTile(
+                    leading: const Icon(Icons.edit),
+                    title: const Text("تعديل الملف الشخصي"),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const EditProfilePage(),
+                        ),
+                      );
+                    },
+                  ),
+
+                  ListTile(
+                    leading: const Icon(Icons.history),
+                    title: const Text("حجوزاتي"),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MyBookingsPage(),
+                        ),
+                      );
+                    },
+                  ),
+
+                  ListTile(
+                    leading: const Icon(Icons.settings),
+                    title: const Text("اعدادات متقدمة"),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SettingsPage(),
+                        ),
+                      );
+                    },
+                  ),
+
+                  ListTile(
+                    leading: const Icon(Icons.logout),
+                    title: const Text("تسجيل الخروج"),
+                    onTap: () async {
+                      Navigator.pop(context);
+
+                      await AuthService().signOut();
+
+                      if (!context.mounted) return;
+
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        '/decide',
+                            (route) => false,
+                      );
+                    },
+                  ),
 
                 ]
               )
@@ -119,74 +148,6 @@ class ProfilePage extends StatelessWidget {
         }
       )
 
-
-    // Padding(
-    //   padding: const EdgeInsets.all(16),
-    //   child: Column(
-    //     children: [
-    //
-    //       const CircleAvatar(
-    //         radius: 50,
-    //         child: Icon(
-    //           Icons.person_2,
-    //           size: 50,
-    //         ),
-    //       ),
-    //
-    //       const SizedBox(height: 16),
-    //
-    //       Text(
-    //         name,
-    //         style: TextStyle(
-    //           fontSize: 20,
-    //           fontWeight: FontWeight.bold,
-    //         ),
-    //       ),
-    //
-    //       const SizedBox(height: 8),
-    //
-    //       const Text(
-    //         "user@email.com",
-    //         style: TextStyle(
-    //           color: Colors.grey,
-    //         ),
-    //       ),
-    //
-    //       const SizedBox(height: 30),
-    //
-    //       ListTile(
-    //         leading: const Icon(Icons.edit),
-    //         title: const Text("تعديل الملف الشخصي"),
-    //         onTap: () {},
-    //       ),
-    //
-    //       ListTile(
-    //         leading: const Icon(Icons.history),
-    //         title: const Text("حجوزاتي"),
-    //         onTap: () {},
-    //       ),
-    //
-    //       ListTile(
-    //         leading: const Icon(Icons.logout),
-    //         title: const Text("تسجيل الخروج"),
-    //         onTap: () async {
-    //
-    //           Navigator.pop(context); // يغلق القائمة
-    //
-    //           await AuthService().signOut();
-    //
-    //           if (!context.mounted) return;
-    //
-    //           Navigator.pushNamedAndRemoveUntil(
-    //             context,
-    //             '/decide',
-    //                 (route) => false,
-    //           );
-    //         },
-    //       ),
-    //     ],
-    //   ),
-    // ),
     );
   }
 }

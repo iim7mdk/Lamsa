@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:lamsa/core/model/user_model.dart';
 import 'package:lamsa/features/owner_dashboard/model/bank_account_model.dart';
 import 'package:lamsa/features/owner_dashboard/model/salon_model.dart';
 import 'package:lamsa/features/owner_dashboard/model/service_model.dart';
@@ -396,5 +397,112 @@ class AuthService {
       throw Exception("Failed to add salon data. Please try again.");
     }
   }
+
+  Future<void> updateUserField(
+      String field,
+      String value,
+      ) async {
+
+    final uid = _auth.currentUser!.uid;
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .update({
+      field: value,
+    });
+  }
+
+  Future<void> signInWithGoogle() async {
+
+    try {
+
+      final GoogleSignInAccount? googleUser =
+      await GoogleSignIn().signIn();
+
+      if (googleUser == null) {
+        return;
+      }
+
+      final GoogleSignInAuthentication googleAuth =
+      await googleUser.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final userCredential = await _auth.signInWithCredential(
+        credential,
+      );
+
+      final user = userCredential.user;
+
+      if (user != null) {
+
+        final userDoc =
+        await _firestore.collection('users').doc(user.uid).get();
+
+        if (!userDoc.exists) {
+
+          await _firestore.collection('users').doc(user.uid).set({
+            'uid': user.uid,
+            'name': user.displayName ?? '',
+            'email': user.email ?? '',
+            'role': 'customer',
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+
+        }
+      }
+
+    } on FirebaseAuthException catch (e) {
+
+      throw Exception(
+        e.message ?? 'Google sign in failed',
+      );
+
+    } catch (e) {
+
+      throw Exception('Google sign in failed');
+
+    }
+  }
+
+  Future<UserModel?> getUserData() async {
+    try {
+
+      final user = _auth.currentUser;
+
+      if (user == null) {
+        return null;
+      }
+
+      final userDoc = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (!userDoc.exists) {
+        return null;
+      }
+
+      final data = userDoc.data()!;
+
+      return UserModel(
+        uid: data['uid'] ?? '',
+        name: data['name'] ?? '',
+        email: data['email'] ?? '',
+        role: data['role'] ?? '',
+      );
+
+    } catch (e) {
+
+      print("Error getting user data: $e");
+
+      return null;
+    }
+  }
 }
+
 
