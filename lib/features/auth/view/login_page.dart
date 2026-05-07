@@ -105,7 +105,35 @@ class _LoginPageState extends State<LoginPage> {
 
             const SizedBox(height: 12),
 
+            ElevatedButton.icon(
 
+              onPressed: () async {
+
+                try {
+
+                  await _authService.signInWithGoogle();
+
+                  if (!mounted) return;
+
+                  Navigator.pushReplacementNamed(
+                    context,
+                    '/decide',
+                  );
+
+                } catch (e) {
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(e.toString()),
+                    ),
+                  );
+
+                }
+              },
+
+              icon: const Icon(Icons.login),
+              label: const Text('Continue with Google'),
+            ),
 
             const SizedBox(height: 12),
 
