@@ -1,9 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:lamsa/features/customer_dashboard/view/pages/customer_navigation_screen.dart';
-import 'package:lamsa/features/customer_dashboard/view/pages/my_bookings.dart';
-
-// غيّر هذا المسار حسب مكان ملف BankAccount عندك
+import 'package:flutter/material.dart';
+import 'package:lamsa/features/customer_dashboard/controller/payment_controller.dart';
 import 'package:lamsa/features/owner_dashboard/model/bank_account_model.dart';
 
 class PaymentPage extends StatefulWidget {
@@ -19,215 +16,32 @@ class PaymentPage extends StatefulWidget {
 }
 
 class _PaymentPageState extends State<PaymentPage> {
-  static const String bookingsCollection = 'bookings';
-  static const String salonsCollection = 'salons';
-  static const String bankAccountsSubCollection = 'bank_accounts';
+  final PaymentController controller = PaymentController();
 
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController _receiptController = TextEditingController();
+  @override
+  void initState() {
+    super.initState();
 
-  bool _isLoading = false;
+    controller.addListener(_controllerListener);
+  }
 
-  String? _selectedBankAccountId;
-  BankAccount? _selectedBankAccount;
+  void _controllerListener() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
 
   @override
   void dispose() {
-    _receiptController.dispose();
+    controller.removeListener(_controllerListener);
+    controller.dispose();
     super.dispose();
   }
 
-  DocumentReference<Map<String, dynamic>> get _bookingRef {
-    return FirebaseFirestore.instance
-        .collection(bookingsCollection)
-        .doc(widget.bookingId);
-  }
-
   Stream<DocumentSnapshot<Map<String, dynamic>>> _bookingStream() {
-    return _bookingRef.snapshots();
-  }
-
-  Stream<List<BankAccount>> _bankAccountsStream(String salonId) {
-    return FirebaseFirestore.instance
-        .collection(salonsCollection)
-        .doc(salonId)
-        .collection(bankAccountsSubCollection)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs
-          .where((doc) {
-        final data = doc.data();
-
-        // إذا عندك isActive في Firestore سيستخدمها
-        // وإذا غير موجودة سيعرض الحساب طبيعي
-        return data['isActive'] != false;
-      })
-          .map((doc) {
-        return BankAccount.fromMap(doc.id, doc.data());
-      })
-          .toList();
-    });
-  }
-
-  Future<void> _uploadReceiptNumber({
-    required String salonId,
-  }) async {
-    FocusScope.of(context).unfocus();
-
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    if (_selectedBankAccount == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('الرجاء اختيار الحساب البنكي'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      await _bookingRef.update({
-        'paymentMethod': 'Bank Accounts',
-        'paymentStatus': 'pending',
-        'bankReceiptNumber': _receiptController.text.trim(),
-        'selectedBankAccountId': _selectedBankAccount!.id,
-        'selectedBankName': _selectedBankAccount!.bankName,
-        'selectedAccountNumber': _selectedBankAccount!.accountNumber,
-        'selectedAccountHolder': _selectedBankAccount!.accountHolder,
-        'receiptUploadedAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تم تأكيد الدفع بنجاح'),
-          backgroundColor: Colors.green,
-        ),
-      );
-
-      await Future.delayed(const Duration(milliseconds: 700));
-
-      if (!mounted) return;
-
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (context) => const CustomerNavigationScreen(initialIndex: 1),
-        ),
-            (route) => false,
-      );
-    } catch (e) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('حدث خطأ أثناء رفع رقم السند: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  Widget _bankAccountsSection(String salonId) {
-    return StreamBuilder<List<BankAccount>>(
-      stream: _bankAccountsStream(salonId),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
-            child: Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
-
-        if (snapshot.hasError) {
-          return const Card(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Text(
-                'حدث خطأ أثناء تحميل الحسابات البنكية',
-                style: TextStyle(color: Colors.red),
-              ),
-            ),
-          );
-        }
-
-        final bankAccounts = snapshot.data ?? [];
-
-        if (bankAccounts.isEmpty) {
-          return const Card(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Text(
-                'لا توجد حسابات بنكية لهذا الصالون حالياً',
-                style: TextStyle(color: Colors.black54),
-              ),
-            ),
-          );
-        }
-
-        return Column(
-          children: bankAccounts.map((account) {
-            return Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: RadioListTile<String>(
-                value: account.id,
-                groupValue: _selectedBankAccountId,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedBankAccountId = value;
-                    _selectedBankAccount = account;
-                  });
-                },
-                title: Text(
-                  account.bankName.isEmpty ? 'حساب بنكي' : account.bankName,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                subtitle: Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (account.accountHolder.isNotEmpty)
-                        _bankInfoRow(
-                          title: 'صاحب الحساب',
-                          value: account.accountHolder,
-                        ),
-                      _bankInfoRow(
-                        title: 'رقم الحساب',
-                        value: account.accountNumber.toString(),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-        );
-      },
-    );
+    return controller
+        .bookingRef(widget.bookingId)
+        .snapshots();
   }
 
   Widget _bankInfoRow({
@@ -258,20 +72,127 @@ class _PaymentPageState extends State<PaymentPage> {
     );
   }
 
+  Widget _bankAccountsSection(String salonId) {
+    return StreamBuilder<List<BankAccount>>(
+      stream: controller.bankAccountsStream(salonId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState ==
+            ConnectionState.waiting) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return const Card(
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: Text(
+                'حدث خطأ أثناء تحميل الحسابات البنكية',
+                style: TextStyle(
+                  color: Colors.red,
+                ),
+              ),
+            ),
+          );
+        }
+
+        final bankAccounts = snapshot.data ?? [];
+
+        if (bankAccounts.isEmpty) {
+          return const Card(
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: Text(
+                'لا توجد حسابات بنكية لهذا الصالون حالياً',
+                style: TextStyle(
+                  color: Colors.black54,
+                ),
+              ),
+            ),
+          );
+        }
+
+        return Column(
+          children: bankAccounts.map((account) {
+            return Card(
+              margin: const EdgeInsets.only(
+                bottom: 12,
+              ),
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius:
+                BorderRadius.circular(14),
+              ),
+              child: RadioListTile<String>(
+                value: account.id,
+                groupValue:
+                controller.selectedBankAccountId,
+                onChanged: (value) {
+                  controller.selectBankAccount(
+                    account,
+                  );
+                },
+                title: Text(
+                  account.bankName.isEmpty
+                      ? 'حساب بنكي'
+                      : account.bankName,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                subtitle: Padding(
+                  padding:
+                  const EdgeInsets.only(top: 8),
+                  child: Column(
+                    crossAxisAlignment:
+                    CrossAxisAlignment.start,
+                    children: [
+                      if (account
+                          .accountHolder.isNotEmpty)
+                        _bankInfoRow(
+                          title: 'صاحب الحساب',
+                          value:
+                          account.accountHolder,
+                        ),
+                      _bankInfoRow(
+                        title: 'رقم الحساب',
+                        value: account
+                            .accountNumber
+                            .toString(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+
   Widget _receiptTextField() {
     return TextFormField(
-      controller: _receiptController,
+      controller: controller.receiptController,
       keyboardType: TextInputType.number,
       decoration: InputDecoration(
         labelText: 'رقم السند',
         hintText: 'اكتب رقم السند هنا',
-        prefixIcon: const Icon(Icons.receipt_long),
+        prefixIcon:
+        const Icon(Icons.receipt_long),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius:
+          BorderRadius.circular(14),
         ),
       ),
       validator: (value) {
-        final receiptNumber = value?.trim() ?? '';
+        final receiptNumber =
+            value?.trim() ?? '';
 
         if (receiptNumber.isEmpty) {
           return 'الرجاء كتابة رقم السند';
@@ -286,26 +207,33 @@ class _PaymentPageState extends State<PaymentPage> {
     );
   }
 
-  Widget _confirmButton(String salonId) {
+  Widget _confirmButton() {
     return SizedBox(
       width: double.infinity,
       height: 52,
       child: ElevatedButton(
-        onPressed: _isLoading
+        onPressed: controller.isLoading
             ? null
             : () {
-          _uploadReceiptNumber(salonId: salonId);
+          controller
+              .uploadReceiptNumber(
+            context: context,
+            bookingId:
+            widget.bookingId,
+          );
         },
         style: ElevatedButton.styleFrom(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius:
+            BorderRadius.circular(14),
           ),
         ),
-        child: _isLoading
+        child: controller.isLoading
             ? const SizedBox(
           width: 24,
           height: 24,
-          child: CircularProgressIndicator(
+          child:
+          CircularProgressIndicator(
             strokeWidth: 2,
             color: Colors.white,
           ),
@@ -314,7 +242,8 @@ class _PaymentPageState extends State<PaymentPage> {
           'تأكيد الدفع',
           style: TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.bold,
+            fontWeight:
+            FontWeight.bold,
           ),
         ),
       ),
@@ -326,15 +255,17 @@ class _PaymentPageState extends State<PaymentPage> {
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
-          key: _formKey,
+          key: controller.formKey,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment:
+            CrossAxisAlignment.start,
             children: [
               const Text(
                 'الحسابات البنكية',
                 style: TextStyle(
                   fontSize: 22,
-                  fontWeight: FontWeight.bold,
+                  fontWeight:
+                  FontWeight.bold,
                 ),
               ),
 
@@ -358,7 +289,7 @@ class _PaymentPageState extends State<PaymentPage> {
 
               const SizedBox(height: 24),
 
-              _confirmButton(salonId),
+              _confirmButton(),
             ],
           ),
         ),
@@ -375,12 +306,16 @@ class _PaymentPageState extends State<PaymentPage> {
           title: const Text('صفحة الدفع'),
           centerTitle: true,
         ),
-        body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        body: StreamBuilder<
+            DocumentSnapshot<
+                Map<String, dynamic>>>(
           stream: _bookingStream(),
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
+            if (snapshot.connectionState ==
+                ConnectionState.waiting) {
               return const Center(
-                child: CircularProgressIndicator(),
+                child:
+                CircularProgressIndicator(),
               );
             }
 
@@ -388,20 +323,29 @@ class _PaymentPageState extends State<PaymentPage> {
               return const Center(
                 child: Text(
                   'حدث خطأ أثناء تحميل بيانات الحجز',
-                  style: TextStyle(color: Colors.red),
+                  style: TextStyle(
+                    color: Colors.red,
+                  ),
                 ),
               );
             }
 
-            if (!snapshot.hasData || !snapshot.data!.exists) {
+            if (!snapshot.hasData ||
+                !snapshot.data!.exists) {
               return const Center(
-                child: Text('الحجز غير موجود'),
+                child: Text(
+                  'الحجز غير موجود',
+                ),
               );
             }
 
-            final bookingData = snapshot.data!.data();
+            final bookingData =
+            snapshot.data!.data();
 
-            final salonId = bookingData?['salonId']?.toString() ?? '';
+            final salonId = bookingData?[
+            'salonId']
+                ?.toString() ??
+                '';
 
             if (salonId.isEmpty) {
               return const Center(
@@ -409,14 +353,19 @@ class _PaymentPageState extends State<PaymentPage> {
                   padding: EdgeInsets.all(16),
                   child: Text(
                     'لا يوجد salonId داخل بيانات الحجز',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.red),
+                    textAlign:
+                    TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.red,
+                    ),
                   ),
                 ),
               );
             }
 
-            return _paymentBody(salonId);
+            return _paymentBody(
+              salonId,
+            );
           },
         ),
       ),

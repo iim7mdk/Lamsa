@@ -1,8 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:flutter/material.dart';
 import 'package:lamsa/features/customer_dashboard/controller/booking_controller.dart';
-import 'package:lamsa/features/customer_dashboard/model/booking_model.dart';
 import 'package:lamsa/features/customer_dashboard/service/booking_service.dart';
 import 'package:lamsa/features/owner_dashboard/model/service_model.dart';
 import 'payment_page.dart';
@@ -90,6 +88,7 @@ class _BookingPageState extends State<BookingPage> {
                 fontWeight: FontWeight.w600,
               ),
             ),
+
             const SizedBox(height: 12),
 
             ...widget.services.map((service) {
@@ -110,6 +109,7 @@ class _BookingPageState extends State<BookingPage> {
             }),
 
             const SizedBox(height: 20),
+
             Column(
               children: [
                 const SizedBox(height: 20),
@@ -188,7 +188,7 @@ class _BookingPageState extends State<BookingPage> {
                           ),
                         ),
                         Text(
-                          '$totalPrice ر.س',
+                          '${_controller.calculateTotalPrice(selectedServices)} ر.س',
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -205,48 +205,17 @@ class _BookingPageState extends State<BookingPage> {
 
                       onPressed: () async {
                         try {
-                          final user = FirebaseAuth.instance.currentUser;
-
-                          if (user == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('يجب تسجيل الدخول قبل إنشاء الحجز'),
-                              ),
-                            );
-                            return;
-                          }
-
-                          final userDoc = await FirebaseFirestore.instance
-                              .collection('users')
-                              .doc(user.uid)
-                              .get();
-
-                          final userData = userDoc.data();
-
-                          final customerName = userData?['name'] ?? 'غير معروف';
-                          final customerPhone = userData?['phone'] ?? 'غير متوفر';
-
-                          final bookingId = await _controller.confirmBooking(
-                            customerId: user.uid,
-                            customerName: customerName,
-                            customerPhone: int.tryParse(customerPhone.toString()) ?? 0,
+                          final bookingId =
+                          await _controller.createBookingAndValidate(
                             salonId: widget.salonId,
-                            selectedServices: selectedServices.map((s) => s.name).toList(),
-                            totalPrice: totalPrice,
+                            selectedServices:
+                            selectedServices.map((s) => s.name).toList(),
+                            totalPrice: _controller.calculateTotalPrice(selectedServices),
                             selectedDate: selectedDate,
                             selectedTime: selectedTime,
                           );
 
                           if (!context.mounted) return;
-
-                          if (bookingId.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('حدث خطأ أثناء إنشاء الحجز'),
-                              ),
-                            );
-                            return;
-                          }
 
                           Navigator.push(
                             context,
@@ -261,7 +230,9 @@ class _BookingPageState extends State<BookingPage> {
 
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(e.toString().replaceFirst('Exception: ', '')),
+                              content: Text(
+                                e.toString().replaceFirst('Exception: ', ''),
+                              ),
                             ),
                           );
                         }
@@ -282,11 +253,5 @@ class _BookingPageState extends State<BookingPage> {
     );
   }
 
-  double get totalPrice {
-    return selectedServices.fold(
-      0,
-          (sum, service) => sum + service.price,
-    );
-  }
 
 }

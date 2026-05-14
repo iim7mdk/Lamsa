@@ -25,6 +25,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
     Query<Map<String, dynamic>> query = FirebaseFirestore.instance
         .collection(OwnerDashboardScreen.bookingsCollection)
         .where('salonId', isEqualTo: widget.salonId)
+        .where('status', isEqualTo: 'pending')
         .orderBy('appointmentAt', descending: false);
 
     // إذا تريدي عرض الطلبات الجديدة فقط، استخدمي هذا بدلًا من عرض كل الحالات:
@@ -38,7 +39,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
   }
 
   Future<_CustomerInfo> _getCustomerInfo(String customerId) {
-    debugPrint('CUSTOMER ID FROM BOOKING: $customerId');
+    // debugPrint('CUSTOMER ID FROM BOOKING: $customerId');
 
     if (customerId.trim().isEmpty) {
       return Future.value(

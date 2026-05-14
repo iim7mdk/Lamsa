@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:lamsa/features/customer_dashboard/controller/booking_controller.dart';
+import 'package:lamsa/features/customer_dashboard/service/booking_service.dart';
 
-class MyBookingsPage extends StatelessWidget {
+class MyBookingsPage extends StatefulWidget {
   final bool showAppBar;
 
   const MyBookingsPage({
@@ -10,12 +12,23 @@ class MyBookingsPage extends StatelessWidget {
     this.showAppBar = true,
   });
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> _myBookingsStream(String userId) {
-    return FirebaseFirestore.instance
-        .collection('bookings')
-        .where('customerId', isEqualTo: userId)
-        .snapshots();
+  @override
+  State<MyBookingsPage> createState() => _MyBookingsPageState();
+}
+
+
+class _MyBookingsPageState extends State<MyBookingsPage> {
+
+  @override
+  void initState() {
+    super.initState();
+
+    _bookingController.deleteExpiredUnpaidBookings();
   }
+
+
+  final BookingController _bookingController =
+  BookingController(BookingService());
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +37,7 @@ class MyBookingsPage extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        appBar: showAppBar
+        appBar: widget.showAppBar
             ? AppBar(
           title: const Text('حجوزاتي'),
           centerTitle: true,
@@ -38,7 +51,7 @@ class MyBookingsPage extends StatelessWidget {
           ),
         )
             : StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-          stream: _myBookingsStream(user.uid),
+          stream: _bookingController.getMyBookings(user.uid),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(
@@ -65,9 +78,9 @@ class MyBookingsPage extends StatelessWidget {
             final docs = [...(snapshot.data?.docs ?? [])];
 
             docs.sort((a, b) {
-              final aDate = _toDate(a.data()['createdAt']) ??
+              final aDate = _bookingController.toDate(a.data()['createdAt']) ??
                   DateTime.fromMillisecondsSinceEpoch(0);
-              final bDate = _toDate(b.data()['createdAt']) ??
+              final bDate = _bookingController.toDate(b.data()['createdAt']) ??
                   DateTime.fromMillisecondsSinceEpoch(0);
 
               return bDate.compareTo(aDate);
@@ -113,81 +126,87 @@ class _BookingCard extends StatefulWidget {
 }
 
 class _BookingCardState extends State<_BookingCard> {
-  late Future<_BookingExtraData> _extraDataFuture;
+  late Future<BookingExtraData> _extraDataFuture;
 
   @override
   void initState() {
     super.initState();
-    _extraDataFuture = _loadExtraData();
+    _extraDataFuture =
+        _bookingController.loadExtraData(widget.data);
   }
 
-  Future<_BookingExtraData> _loadExtraData() async {
-    final salonId = widget.data['salonId']?.toString() ?? '';
-    final serviceIds = _stringList(widget.data['serviceIds']);
+  final BookingController _bookingController =
+  BookingController(BookingService());
 
-    if (salonId.isEmpty) {
-      return const _BookingExtraData(
-        salonName: 'صالون غير معروف',
-        serviceNames: [],
-      );
-    }
-
-    final firestore = FirebaseFirestore.instance;
-
-    String salonName = 'صالون';
-
-    try {
-      final salonDoc = await firestore.collection('salons').doc(salonId).get();
-
-      final salonData = salonDoc.data();
-
-      salonName = salonData?['title']?.toString() ??
-          salonData?['name']?.toString() ??
-          salonData?['salonName']?.toString() ??
-          'صالون';
-    } catch (_) {
-      salonName = 'تعذر تحميل اسم الصالون';
-    }
-
-    final List<String> serviceNames = [];
-
-    for (final serviceId in serviceIds) {
-      try {
-        final serviceDoc = await firestore
-            .collection('salons')
-            .doc(salonId)
-            .collection('services')
-            .doc(serviceId)
-            .get();
-
-        final serviceData = serviceDoc.data();
-
-        final serviceName = serviceData?['name']?.toString() ??
-            serviceData?['title']?.toString() ??
-            serviceData?['serviceName']?.toString() ??
-            serviceId;
-
-        serviceNames.add(serviceName);
-      } catch (_) {
-        serviceNames.add(serviceId);
-      }
-    }
-
-    return _BookingExtraData(
-      salonName: salonName,
-      serviceNames: serviceNames,
-    );
-  }
+  // Future<BookingExtraData> _loadExtraData() async {
+  //   final salonId = widget.data['salonId']?.toString() ?? '';
+  //   final serviceIds = _stringList(widget.data['selectedServices']);
+  //
+  //   if (salonId.isEmpty) {
+  //     return const _BookingExtraData(
+  //       salonName: 'صالون غير معروف',
+  //       serviceNames: [],
+  //     );
+  //   }
+  //
+  //   final firestore = FirebaseFirestore.instance;
+  //
+  //   String salonName = 'صالون';
+  //
+  //   try {
+  //     final salonDoc = await firestore.collection('salons').doc(salonId).get();
+  //
+  //     final salonData = salonDoc.data();
+  //
+  //     salonName = salonData?['title']?.toString() ??
+  //         salonData?['name']?.toString() ??
+  //         salonData?['salonName']?.toString() ??
+  //         'صالون';
+  //   } catch (_) {
+  //     salonName = 'تعذر تحميل اسم الصالون';
+  //   }
+  //
+  //   final List<String> serviceNames = [];
+  //
+  //   for (final serviceId in serviceIds) {
+  //     try {
+  //       final serviceDoc = await firestore
+  //           .collection('salons')
+  //           .doc(salonId)
+  //           .collection('services')
+  //           .doc(serviceId)
+  //           .get();
+  //
+  //       final serviceData = serviceDoc.data();
+  //
+  //       final serviceName = serviceData?['name']?.toString() ??
+  //           serviceData?['title']?.toString() ??
+  //           serviceData?['serviceName']?.toString() ??
+  //           serviceId;
+  //
+  //       serviceNames.add(serviceName);
+  //     } catch (_) {
+  //       serviceNames.add(serviceId);
+  //     }
+  //   }
+  //
+  //   return _BookingExtraData(
+  //     salonName: salonName,
+  //     serviceNames: serviceNames,
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
-    final appointmentAt = _toDate(widget.data['appointmentAt']);
-    final createdAt = _toDate(widget.data['createdAt']);
 
-    final totalPrice = _formatPrice(widget.data['totalPrice']);
+    final appointmentAt =
+    _bookingController.toDate(widget.data['appointmentAt']);
+
+    final createdAt = _bookingController.toDate(widget.data['createdAt']);
+
+    final totalPrice = _bookingController.formatPrice(widget.data['totalPrice']);
 
     final bookingStatus = widget.data['status']?.toString() ?? 'pending';
-    final paymentStatus = widget.data['paymentStatus']?.toString() ?? '';
 
     final bankReceiptNumber =
         widget.data['bankReceiptNumber']?.toString() ?? '';
@@ -195,7 +214,7 @@ class _BookingCardState extends State<_BookingCard> {
     final selectedBankName =
         widget.data['selectedBankName']?.toString() ?? '';
 
-    return FutureBuilder<_BookingExtraData>(
+    return FutureBuilder<BookingExtraData>(
       future: _extraDataFuture,
       builder: (context, snapshot) {
         final extraData = snapshot.data;
@@ -237,14 +256,14 @@ class _BookingCardState extends State<_BookingCard> {
                   title: 'التاريخ',
                   value: appointmentAt == null
                       ? 'غير محدد'
-                      : _formatDate(appointmentAt),
+                      : _bookingController.formatDate(appointmentAt),
                 ),
 
                 _InfoRow(
                   title: 'الوقت',
                   value: appointmentAt == null
                       ? 'غير محدد'
-                      : _formatTime(appointmentAt),
+                      : _bookingController.formatTime(appointmentAt),
                 ),
 
                 _InfoRow(
@@ -253,15 +272,10 @@ class _BookingCardState extends State<_BookingCard> {
                 ),
 
                 _InfoRow(
-                  title: 'حالة الحجز',
-                  value: _bookingStatusText(bookingStatus),
+                  title: 'الحالة',
+                  value: _bookingController.statusText(bookingStatus),
                 ),
 
-                if (paymentStatus.isNotEmpty)
-                  _InfoRow(
-                    title: 'حالة الدفع',
-                    value: _paymentStatusText(paymentStatus),
-                  ),
 
                 if (bankReceiptNumber.isNotEmpty)
                   _InfoRow(
@@ -278,7 +292,7 @@ class _BookingCardState extends State<_BookingCard> {
                 if (createdAt != null)
                   _InfoRow(
                     title: 'تاريخ إنشاء الحجز',
-                    value: _formatDate(createdAt),
+                    value: _bookingController.formatDate(createdAt),
                   ),
 
                 const SizedBox(height: 8),
@@ -366,102 +380,5 @@ class _EmptyBookingsView extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class _BookingExtraData {
-  final String salonName;
-  final List<String> serviceNames;
-
-  const _BookingExtraData({
-    required this.salonName,
-    required this.serviceNames,
-  });
-}
-
-DateTime? _toDate(dynamic value) {
-  if (value == null) return null;
-
-  if (value is Timestamp) {
-    return value.toDate();
-  }
-
-  if (value is DateTime) {
-    return value;
-  }
-
-  if (value is String) {
-    return DateTime.tryParse(value);
-  }
-
-  return null;
-}
-
-List<String> _stringList(dynamic value) {
-  if (value is List) {
-    return value.map((item) => item.toString()).toList();
-  }
-
-  return [];
-}
-
-String _formatDate(DateTime date) {
-  return '${date.day}/${date.month}/${date.year}';
-}
-
-String _formatTime(DateTime date) {
-  final period = date.hour >= 12 ? 'م' : 'ص';
-  int hour = date.hour % 12;
-
-  if (hour == 0) {
-    hour = 12;
-  }
-
-  final minute = date.minute.toString().padLeft(2, '0');
-
-  return '$hour:$minute $period';
-}
-
-String _formatPrice(dynamic value) {
-  double price = 0;
-
-  if (value is num) {
-    price = value.toDouble();
-  } else {
-    price = double.tryParse(value?.toString() ?? '') ?? 0;
-  }
-
-  final hasDecimals = price % 1 != 0;
-
-  return '${price.toStringAsFixed(hasDecimals ? 2 : 0)} ر.س';
-}
-
-String _bookingStatusText(String status) {
-  switch (status) {
-    case 'pending':
-      return 'بانتظار تأكيد الصالون';
-    case 'confirmed':
-      return 'تم التأكيد';
-    case 'completed':
-      return 'مكتمل';
-    case 'cancelled':
-      return 'ملغي';
-    default:
-      return status;
-  }
-}
-
-String _paymentStatusText(String status) {
-  switch (status) {
-    case 'pending':
-      return 'قيد المراجعة';
-    case 'paid':
-      return 'مدفوع';
-    case 'rejected':
-      return 'مرفوض';
-    case 'unpaid':
-      return 'غير مدفوع';
-    default:
-      return status;
   }
 }
