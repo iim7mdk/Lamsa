@@ -273,7 +273,8 @@ class _BookingCardState extends State<_BookingCard> {
 
                 _InfoRow(
                   title: 'الحالة',
-                  value: _bookingController.statusText(bookingStatus),
+                  value: _bookingController.getBookingStatusText(bookingStatus),
+                  color: _bookingController.getStatusColor(bookingStatus),
                 ),
 
 
@@ -319,10 +320,12 @@ class _BookingCardState extends State<_BookingCard> {
 class _InfoRow extends StatelessWidget {
   final String title;
   final String value;
+  final Color? color;
 
   const _InfoRow({
     required this.title,
     required this.value,
+    this.color,
   });
 
   @override
@@ -341,8 +344,11 @@ class _InfoRow extends StatelessWidget {
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
-                color: Colors.black87,
+              style: TextStyle(
+                color: color ?? Colors.black87,
+                fontWeight: color != null
+                    ? FontWeight.bold
+                    : FontWeight.normal,
               ),
             ),
           ),

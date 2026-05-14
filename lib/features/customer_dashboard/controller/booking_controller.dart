@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lamsa/features/customer_dashboard/model/booking_model.dart';
 import 'package:lamsa/features/owner_dashboard/model/service_model.dart';
@@ -181,22 +182,31 @@ class BookingController {
     )} ر.س';
   }
 
-  String statusText(String status) {
+
+
+  String getBookingStatusText(String status) {
     switch (status) {
       case 'pending':
         return 'قيد المراجعة';
-
       case 'accepted':
         return 'تم القبول';
-
       case 'rejected':
         return 'مرفوض';
-
-      case 'unpaid':
-        return 'غير مدفوع';
-
       default:
-        return status;
+        return 'غير مدفوع'; // أو أي حالة أخرى إذا كانت موجودة
+    }
+  }
+
+  Color getStatusColor(String status) {
+    switch (status) {
+      case 'pending':
+        return Colors.orange; // قيد المراجعة
+      case 'accepted':
+        return Colors.green; // تم القبول
+      case 'rejected':
+        return Colors.red; // مرفوض
+      default:
+        return Colors.grey; // غير مدفوع أو أي حالة أخرى
     }
   }
 
