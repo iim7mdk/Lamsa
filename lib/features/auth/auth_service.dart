@@ -73,6 +73,7 @@ class AuthService {
           'name': name,
           'email': email,
           'role': 'owner',
+          'ownerStatus': 'pending',
           'createdAt': FieldValue.serverTimestamp(),
         });
 
@@ -84,6 +85,8 @@ class AuthService {
           'phone': phone,
           'location': location,
           'workingHours': workingHours,
+          'status': 'pending',
+          'isVerified': false,
           'createdAt': FieldValue.serverTimestamp(),
         });
 
@@ -207,6 +210,8 @@ class AuthService {
         location: data['location'] ?? '',
         workingHours: data['workingHours'] ?? '',
         ownerUid: data['ownerUid'] ?? user.uid,
+        status: data['status'] ?? 'pending',
+        isVerified: data['isVerified'] == true,
         services: services,
         bankAccounts: bankAccounts,
       );
@@ -214,6 +219,18 @@ class AuthService {
       print("Error retrieving salon data: $e");
       return null;
     }
+  }
+
+  Future<String?> getOwnerStatus() async {
+    final user = currentUser;
+    if (user == null) return null;
+
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+
+    return doc.data()?['ownerStatus'];
   }
 
   Future<void> sendPasswordResetEmail(String email) async {
@@ -379,6 +396,8 @@ class AuthService {
         'location': location,
         'workingHours': workingHours,
         'ownerUid': user.uid,  // ربط الصالون بالمالك باستخدام الـ uid
+        'status': 'pending',
+        'isVerified': false,
         'createdAt': FieldValue.serverTimestamp(),
       });
 

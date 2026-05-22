@@ -15,9 +15,12 @@ class SalonListPage extends StatelessWidget {
   // هذه دالة لجلب بيانات الصالونات من Firebase
   Future<List<SalonModel>> _getSalonsFromFirestore() async {
     try{
-      final querySnapshot = await FirebaseFirestore.instance.collection('salons').get();
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('salons')
+          .where('status', isEqualTo: 'approved')
+          .where('isVerified', isEqualTo: true)
+          .get();
 
-      // print('Number of salons in Firestore: ${querySnapshot.docs.length}');  // طباعة عدد الصالونات
 
       return Future.wait(querySnapshot.docs.map((doc) async {
         final data = doc.data();
@@ -63,6 +66,8 @@ class SalonListPage extends StatelessWidget {
           location: data['location']?.toString() ?? '',
           workingHours: data['workingHours']?.toString() ?? '',
           ownerUid: data['ownerUid']?.toString() ?? '',
+          status: data['status']?.toString() ?? 'pending',
+          isVerified: data['isVerified'] == true,
           services: servicesList,
           bankAccounts: [],
           // description: data['description'],

@@ -9,6 +9,8 @@ class SalonModel {
   final String location;
   final String workingHours;
   final String ownerUid;
+  final String status;
+  final bool isVerified;
   final List<Service> services;
   final List<BankAccount> bankAccounts;
 
@@ -20,6 +22,8 @@ class SalonModel {
     required this.location,
     required this.workingHours,
     required this.ownerUid,
+    required this.status,
+    required this.isVerified,
     required this.services,
     required this.bankAccounts,  // إضافة الحسابات البنكية هنا
   });
@@ -36,6 +40,8 @@ class SalonModel {
       location: map['location'] ?? '',
       workingHours: map['workingHours'] ?? '',
       ownerUid: map['ownerUid'] ?? '',
+      status: map['status'] ?? 'pending',
+      isVerified: map['isVerified'] ?? false,
       services: [],
       bankAccounts: [],
     );
@@ -49,6 +55,8 @@ class SalonModel {
       'location': location,
       'workingHours': workingHours,
       'ownerUid': ownerUid,
+      'status': status,
+      'isVerified': isVerified,
       // 'services' ليست ضرورية هنا لأننا نقرأها من كولكشن Firestore
     };
   }
