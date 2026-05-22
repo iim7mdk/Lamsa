@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lamsa/core/theme/app_theme.dart';
 import 'package:lamsa/features/auth/view/decide_role.dart';
 import 'package:lamsa/features/auth/view/login_page.dart';
 import 'package:lamsa/features/auth/view/register_page.dart';
@@ -21,12 +22,13 @@ class MyApp extends StatelessWidget {
           child: child!,
         );
       },
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.pink),
-        appBarTheme: const AppBarTheme(
-          centerTitle: true,
-        ),
-      ),
+      theme: AppTheme.lightTheme,
+      // theme: ThemeData(
+      //   colorScheme: ColorScheme.fromSeed(seedColor: Colors.pink),
+      //   appBarTheme: const AppBarTheme(
+      //     centerTitle: true,
+      //   ),
+      // ),
       initialRoute: '/decide',
       routes: {
         '/login': (context) => const LoginPage(),
