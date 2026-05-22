@@ -81,41 +81,47 @@ class SalonApprovalScreen extends StatelessWidget {
                     const SizedBox(height: 12),
                     Row(
                       children: [
-                        ElevatedButton(
-                          onPressed: () async {
-                            await approveSalon(salonId, ownerUid);
-                            if (!context.mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('تم اعتماد الصالون')),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                          ),
-                          child: const Text(
-                            'اعتماد',
-                            style: TextStyle(color: Colors.white),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              await approveSalon(salonId, ownerUid);
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('تم اعتماد الصالون')),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              minimumSize: const Size(0, 45),
+                            ),
+                            child: const Text(
+                              'اعتماد',
+                              style: TextStyle(color: Colors.white),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 10),
-                        ElevatedButton(
-                          onPressed: () async {
-                            await rejectSalon(salonId, ownerUid);
-                            if (!context.mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('تم رفض الصالون')),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                          ),
-                          child: const Text(
-                            'رفض',
-                            style: TextStyle(color: Colors.white),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              await rejectSalon(salonId, ownerUid);
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('تم رفض الصالون')),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              minimumSize: const Size(0, 45),
+                            ),
+                            child: const Text(
+                              'رفض',
+                              style: TextStyle(color: Colors.white),
+                            ),
                           ),
                         ),
                       ],
-                    ),
+                    )
                   ],
                 ),
               ),

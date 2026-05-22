@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'screens/salon_approval_screen.dart';
 import 'screens/admin_users_screen.dart';
 import 'screens/admin_salons_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:lamsa/features/auth/view/login_page.dart';
 
 class AdminNavigationScreen extends StatefulWidget {
   const AdminNavigationScreen({super.key});
@@ -30,7 +32,28 @@ class _AdminNavigationScreenState extends State<AdminNavigationScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        appBar: AppBar(title: Text(titles[currentIndex])),
+        appBar: AppBar(
+          title: Text(titles[currentIndex]),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: () async {
+
+                await FirebaseAuth.instance.signOut();
+
+                if (!context.mounted) return;
+
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const LoginPage(),
+                  ),
+                      (route) => false,
+                );
+              },
+            ),
+          ],
+        ),
         body: IndexedStack(
           index: currentIndex,
           children: pages,

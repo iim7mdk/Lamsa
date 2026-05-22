@@ -127,90 +127,29 @@ class _BookingCard extends StatefulWidget {
 
 class _BookingCardState extends State<_BookingCard> {
   late Future<BookingExtraData> _extraDataFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _extraDataFuture =
-        _bookingController.loadExtraData(widget.data);
-  }
+  bool isExpanded = false;
 
   final BookingController _bookingController =
   BookingController(BookingService());
 
-  // Future<BookingExtraData> _loadExtraData() async {
-  //   final salonId = widget.data['salonId']?.toString() ?? '';
-  //   final serviceIds = _stringList(widget.data['selectedServices']);
-  //
-  //   if (salonId.isEmpty) {
-  //     return const _BookingExtraData(
-  //       salonName: 'صالون غير معروف',
-  //       serviceNames: [],
-  //     );
-  //   }
-  //
-  //   final firestore = FirebaseFirestore.instance;
-  //
-  //   String salonName = 'صالون';
-  //
-  //   try {
-  //     final salonDoc = await firestore.collection('salons').doc(salonId).get();
-  //
-  //     final salonData = salonDoc.data();
-  //
-  //     salonName = salonData?['title']?.toString() ??
-  //         salonData?['name']?.toString() ??
-  //         salonData?['salonName']?.toString() ??
-  //         'صالون';
-  //   } catch (_) {
-  //     salonName = 'تعذر تحميل اسم الصالون';
-  //   }
-  //
-  //   final List<String> serviceNames = [];
-  //
-  //   for (final serviceId in serviceIds) {
-  //     try {
-  //       final serviceDoc = await firestore
-  //           .collection('salons')
-  //           .doc(salonId)
-  //           .collection('services')
-  //           .doc(serviceId)
-  //           .get();
-  //
-  //       final serviceData = serviceDoc.data();
-  //
-  //       final serviceName = serviceData?['name']?.toString() ??
-  //           serviceData?['title']?.toString() ??
-  //           serviceData?['serviceName']?.toString() ??
-  //           serviceId;
-  //
-  //       serviceNames.add(serviceName);
-  //     } catch (_) {
-  //       serviceNames.add(serviceId);
-  //     }
-  //   }
-  //
-  //   return _BookingExtraData(
-  //     salonName: salonName,
-  //     serviceNames: serviceNames,
-  //   );
-  // }
+  @override
+  void initState() {
+    super.initState();
+    _extraDataFuture = _bookingController.loadExtraData(widget.data);
+  }
 
   @override
   Widget build(BuildContext context) {
-
     final appointmentAt =
     _bookingController.toDate(widget.data['appointmentAt']);
 
     final createdAt = _bookingController.toDate(widget.data['createdAt']);
-
-    final totalPrice = _bookingController.formatPrice(widget.data['totalPrice']);
+    final totalPrice =
+    _bookingController.formatPrice(widget.data['totalPrice']);
 
     final bookingStatus = widget.data['status']?.toString() ?? 'pending';
-
     final bankReceiptNumber =
         widget.data['bankReceiptNumber']?.toString() ?? '';
-
     final selectedBankName =
         widget.data['selectedBankName']?.toString() ?? '';
 
@@ -218,7 +157,6 @@ class _BookingCardState extends State<_BookingCard> {
       future: _extraDataFuture,
       builder: (context, snapshot) {
         final extraData = snapshot.data;
-
         final salonName = extraData?.salonName ?? 'جاري تحميل الصالون...';
 
         final servicesText = snapshot.connectionState == ConnectionState.waiting
@@ -232,83 +170,135 @@ class _BookingCardState extends State<_BookingCard> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  salonName,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-
-                const SizedBox(height: 12),
-
-                _InfoRow(
-                  title: 'الخدمات',
-                  value: servicesText,
-                ),
-
-                _InfoRow(
-                  title: 'التاريخ',
-                  value: appointmentAt == null
-                      ? 'غير محدد'
-                      : _bookingController.formatDate(appointmentAt),
-                ),
-
-                _InfoRow(
-                  title: 'الوقت',
-                  value: appointmentAt == null
-                      ? 'غير محدد'
-                      : _bookingController.formatTime(appointmentAt),
-                ),
-
-                _InfoRow(
-                  title: 'الإجمالي',
-                  value: totalPrice,
-                ),
-
-                _InfoRow(
-                  title: 'الحالة',
-                  value: _bookingController.getBookingStatusText(bookingStatus),
-                  color: _bookingController.getStatusColor(bookingStatus),
-                ),
-
-
-                if (bankReceiptNumber.isNotEmpty)
-                  _InfoRow(
-                    title: 'رقم السند',
-                    value: bankReceiptNumber,
-                  ),
-
-                if (selectedBankName.isNotEmpty)
-                  _InfoRow(
-                    title: 'البنك',
-                    value: selectedBankName,
-                  ),
-
-                if (createdAt != null)
-                  _InfoRow(
-                    title: 'تاريخ إنشاء الحجز',
-                    value: _bookingController.formatDate(createdAt),
-                  ),
-
-                const SizedBox(height: 8),
-
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'رقم الحجز: ${widget.bookingId}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () {
+              setState(() {
+                isExpanded = !isExpanded;
+              });
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: AnimatedSize(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeInOut,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withOpacity(0.12),
+                          child: Icon(
+                            Icons.spa,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            salonName,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Icon(
+                          isExpanded
+                              ? Icons.keyboard_arrow_up
+                              : Icons.keyboard_arrow_down,
+                        ),
+                      ],
                     ),
-                  ),
+
+                    const SizedBox(height: 12),
+
+                    _InfoRow(
+                      title: 'التاريخ',
+                      value: appointmentAt == null
+                          ? 'غير محدد'
+                          : _bookingController.formatDate(appointmentAt),
+                    ),
+
+                    _InfoRow(
+                      title: 'الوقت',
+                      value: appointmentAt == null
+                          ? 'غير محدد'
+                          : _bookingController.formatTime(appointmentAt),
+                    ),
+
+                    _InfoRow(
+                      title: 'الحالة',
+                      value:
+                      _bookingController.getBookingStatusText(bookingStatus),
+                      color: _bookingController.getStatusColor(bookingStatus),
+                    ),
+
+                    if (isExpanded) ...[
+                      const Divider(height: 22),
+
+                      _InfoRow(
+                        title: 'الخدمات',
+                        value: servicesText,
+                      ),
+
+                      _InfoRow(
+                        title: 'الإجمالي',
+                        value: totalPrice,
+                      ),
+
+                      if (bankReceiptNumber.isNotEmpty)
+                        _InfoRow(
+                          title: 'رقم السند',
+                          value: bankReceiptNumber,
+                        ),
+
+                      if (selectedBankName.isNotEmpty)
+                        _InfoRow(
+                          title: 'البنك',
+                          value: selectedBankName,
+                        ),
+
+                      if (createdAt != null)
+                        _InfoRow(
+                          title: 'تاريخ إنشاء الحجز',
+                          value: _bookingController.formatDate(createdAt),
+                        ),
+
+                      const SizedBox(height: 8),
+
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: SelectableText(
+                          'رقم الحجز: ${widget.bookingId}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                    ],
+
+                    const SizedBox(height: 6),
+
+                    Center(
+                      child: Text(
+                        isExpanded
+                            ? 'اضغطي لإخفاء التفاصيل'
+                            : 'اضغطي لعرض التفاصيل',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         );
