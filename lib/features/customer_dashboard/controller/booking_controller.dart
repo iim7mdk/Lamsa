@@ -332,8 +332,8 @@ class BookingController {
       totalPrice: totalPrice,
       selectedDate: selectedDate,
       selectedTime: selectedTime,
-      status: 'unpaid',
-      createdAt: FieldValue.serverTimestamp(),
+      status: 'pending',
+      createdAt: DateTime.now(),
     );
 
     return bookingId;
@@ -355,11 +355,9 @@ class BookingController {
     required String accountHolder,
   }) async {
     try {
-      // تحديث بيانات الحجز
       await _firestore.collection('bookings').doc(bookingId).update({
         'paymentMethod': 'Bank Accounts',
         'paymentStatus': 'pending',
-        'status': 'pending',
         'bankReceiptNumber': receiptNumber,
         'selectedBankAccountId': bankAccountId,
         'selectedBankName': bankName,

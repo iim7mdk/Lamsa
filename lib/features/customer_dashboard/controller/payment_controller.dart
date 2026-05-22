@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:lamsa/features/customer_dashboard/view/pages/customer_navigation_screen.dart';
 import 'package:lamsa/features/owner_dashboard/model/bank_account_model.dart';
@@ -60,11 +61,19 @@ class PaymentController extends ChangeNotifier {
     required BuildContext context,
     required String bookingId,
   }) async {
+
+    // تحقق من أن المستخدم صاحب الحجز
+    final doc = await bookingRef(bookingId).get();
+    if (!doc.exists) {
+      throw Exception('الحجز غير موجود');
+    }
+    if (doc.data()!['customerId'] != FirebaseAuth.instance.currentUser!.uid) {
+      throw Exception('ليس لديك صلاحية تعديل هذا الحجز');
+    }
+
     FocusScope.of(context).unfocus();
 
-    if (!formKey.currentState!.validate()) {
-      return;
-    }
+    if (!formKey.currentState!.validate()) return;
 
     if (selectedBankAccount == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -80,25 +89,21 @@ class PaymentController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await bookingRef(bookingId).update({
+      // تعريف بيانات التحديث
+      Map<String, dynamic> updateData = {
         'paymentMethod': 'Bank Accounts',
-        'paymentStatus': 'pending',
-        'status': 'pending',
-        'bankReceiptNumber':
-        receiptController.text.trim(),
-        'selectedBankAccountId':
-        selectedBankAccount!.id,
-        'selectedBankName':
-        selectedBankAccount!.bankName,
-        'selectedAccountNumber':
-        selectedBankAccount!.accountNumber,
-        'selectedAccountHolder':
-        selectedBankAccount!.accountHolder,
-        'receiptUploadedAt':
-        FieldValue.serverTimestamp(),
-        'updatedAt':
-        FieldValue.serverTimestamp(),
-      });
+        'paymentStatus': 'paid',
+        'bankReceiptNumber': receiptController.text.trim(),
+        'selectedBankAccountId': selectedBankAccount!.id,
+        'selectedBankName': selectedBankAccount!.bankName,
+        'selectedAccountNumber': selectedBankAccount!.accountNumber,
+        'selectedAccountHolder': selectedBankAccount!.accountHolder,
+        'receiptUploadedAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
+      // استخدام set مع merge لتجنب مشاكل diff
+      await bookingRef(bookingId).set(updateData, SetOptions(merge: true));
 
       if (!context.mounted) return;
 
@@ -109,27 +114,20 @@ class PaymentController extends ChangeNotifier {
         ),
       );
 
-      await Future.delayed(
-        const Duration(milliseconds: 700),
-      );
+      await Future.delayed(const Duration(milliseconds: 700));
 
       if (!context.mounted) return;
 
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
-          builder: (_) =>
-          const CustomerNavigationScreen(
-            initialIndex: 1,
-          ),
+          builder: (_) => const CustomerNavigationScreen(initialIndex: 1),
         ),
             (route) => false,
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'حدث خطأ أثناء رفع رقم السند: $e',
-          ),
+          content: Text('حدث خطأ أثناء رفع رقم السند: $e'),
           backgroundColor: Colors.red,
         ),
       );

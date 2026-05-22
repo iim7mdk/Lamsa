@@ -1,5 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // استيراد Firebase
+import 'package:lamsa/core/services/local_notification_service.dart';
 import 'package:lamsa/features/owner_dashboard/model/bank_account_model.dart';
 import 'package:lamsa/features/owner_dashboard/model/salon_model.dart';
 import 'package:lamsa/features/owner_dashboard/model/service_model.dart';
@@ -7,6 +9,8 @@ import '../widgets/salon_card.dart';
 
 class SalonListPage extends StatelessWidget {
   const SalonListPage({super.key});
+
+
 
   // هذه دالة لجلب بيانات الصالونات من Firebase
   Future<List<SalonModel>> _getSalonsFromFirestore() async {

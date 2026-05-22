@@ -1,11 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:lamsa/core/services/local_notification_service.dart';
 
 import 'package:lamsa/features/customer_dashboard/view/pages/profile_page.dart';
 import 'package:lamsa/features/customer_dashboard/view/pages/salon_list_page.dart';
 import 'package:lamsa/features/customer_dashboard/view/pages/my_bookings.dart';
 
-// عدّلي هذا المسار حسب مكان LoginPage عندك
 import 'package:lamsa/features/auth/view/login_page.dart';
 
 class CustomerNavigationScreen extends StatefulWidget {
@@ -29,6 +30,8 @@ class _CustomerNavigationScreenState extends State<CustomerNavigationScreen> {
   @override
   void initState() {
     super.initState();
+
+    listenToNotifications();
 
     currentIndex = widget.initialIndex;
 
@@ -119,4 +122,32 @@ class _CustomerNavigationScreenState extends State<CustomerNavigationScreen> {
       ),
     );
   }
+  void listenToNotifications() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    FirebaseFirestore.instance
+        .collection('notifications')
+        .where('userId', isEqualTo: user.uid)
+        .where('isRead', isEqualTo: false)
+        .snapshots()
+        .listen((snapshot) async {
+      for (final change in snapshot.docChanges) {
+        if (change.type == DocumentChangeType.added) {
+          final doc = change.doc;
+          final data = doc.data();
+
+          await LocalNotificationService.showNotification(
+            title: data?['title'] ?? 'إشعار جديد',
+            body: data?['body'] ?? '',
+          );
+
+          await doc.reference.update({
+            'isRead': true,
+          });
+        }
+      }
+    });
+  }
+
 }

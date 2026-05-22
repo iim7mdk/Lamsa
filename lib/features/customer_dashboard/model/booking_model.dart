@@ -11,6 +11,7 @@ class BookingModel {
   final String? bankReceiptNumber;
   final DateTime appointmentAt;
   final String status;
+  final String? paymentStatus;  // ← تم إضافته بشكل صحيح
   final DateTime createdAt;
 
   const BookingModel({
@@ -22,6 +23,7 @@ class BookingModel {
     required this.selectedServices,
     required this.totalPrice,
     this.bankReceiptNumber,
+    this.paymentStatus,
     required this.appointmentAt,
     required this.status,
     required this.createdAt,
@@ -37,6 +39,7 @@ class BookingModel {
       selectedServices: List<String>.from(map['selectedServices'] ?? const []),
       totalPrice: (map['totalPrice'] as num?)?.toDouble() ?? 0.0,
       bankReceiptNumber: map['bankReceiptNumber'] as String?,
+      paymentStatus: map['paymentStatus'] as String?,
       appointmentAt: (map['appointmentAt'] as Timestamp).toDate(),
       status: map['status'] as String? ?? 'pending',
       createdAt: (map['createdAt'] as Timestamp).toDate(),
@@ -52,9 +55,11 @@ class BookingModel {
       'selectedServices': selectedServices,
       'totalPrice': totalPrice,
       'bankReceiptNumber': bankReceiptNumber,
+      'paymentStatus': paymentStatus,
       'appointmentAt': Timestamp.fromDate(appointmentAt),
       'status': status,
       'createdAt': Timestamp.fromDate(createdAt),
     };
   }
+
 }

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:lamsa/core/services/notification_service.dart';
 import 'package:lamsa/features/customer_dashboard/model/booking_model.dart';
 
 
@@ -74,8 +75,22 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
     required BuildContext context,
     required String bookingId,
     required String status,
+    required BookingModel booking,  // تمرير booking هنا
   }) async {
     try {
+
+      await FirebaseFirestore.instance.collection('notifications').add({
+        'userId': booking.customerId,
+        'bookingId': booking.id,
+        'title': status == 'accepted' ? 'تم قبول الحجز' : 'تم رفض الحجز',
+        'body': status == 'accepted'
+            ? 'تم قبول حجزك بنجاح 🎉'
+            : 'نعتذر، تم رفض حجزك',
+        'status': status,
+        'isRead': false,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
       await FirebaseFirestore.instance
           .collection(OwnerDashboardScreen.bookingsCollection)
           .doc(bookingId)
@@ -93,6 +108,9 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
           ),
         ),
       );
+
+
+
     } catch (e) {
       if (!context.mounted) return;
 
@@ -367,6 +385,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
                                                       bookingId:
                                                       booking.id,
                                                       status: 'accepted',
+                                                      booking: booking,  // تمرير booking هنا
                                                     );
                                                   }
                                                       : null,
@@ -393,6 +412,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
                                                       bookingId:
                                                       booking.id,
                                                       status: 'rejected',
+                                                      booking: booking,  // تمرير booking هنا
                                                     );
                                                   }
                                                       : null,
