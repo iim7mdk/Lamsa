@@ -87,4 +87,27 @@ class AppTheme {
       foregroundColor: Colors.white,
     ),
   );
+
+  static ThemeData darkTheme = ThemeData(
+    useMaterial3: true,
+    brightness: Brightness.dark,
+    scaffoldBackgroundColor: const Color(0xFF1B1117),
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: primary,
+      brightness: Brightness.dark,
+    ),
+    appBarTheme: const AppBarTheme(
+      centerTitle: true,
+      backgroundColor: Color(0xFF2A1722),
+      foregroundColor: Colors.white,
+    ),
+    cardTheme: CardThemeData(
+      color: const Color(0xFF2A1722),
+      elevation: 3,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+      ),
+    ),
+  );
+
 }
