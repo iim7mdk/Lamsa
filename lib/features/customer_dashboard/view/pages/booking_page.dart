@@ -27,6 +27,13 @@ class BookingPage extends StatefulWidget {
 class _BookingPageState extends State<BookingPage> {
   final BookingController _controller = BookingController(BookingService());
 
+  final TextEditingController couponController = TextEditingController();
+
+  String? appliedCouponCode;
+  double discountAmount = 0;
+  double finalPrice = 0;
+  bool isApplyingCoupon = false;
+
   final List<Service> selectedServices = [];
   DateTime? selectedDate;
   String? selectedTime;
@@ -91,14 +98,15 @@ class _BookingPageState extends State<BookingPage> {
           child: ElevatedButton(
             onPressed: () async {
               try {
-                final bookingId =
-                await _controller.createBookingAndValidate(
+                final bookingId = await _controller.createBookingAndValidate(
                   salonId: widget.salonId,
-                  selectedServices:
-                  selectedServices.map((s) => s.name).toList(),
+                  selectedServices: selectedServices.map((s) => s.name).toList(),
                   totalPrice: totalPrice,
                   selectedDate: selectedDate,
                   selectedTime: selectedTime,
+                  couponCode: appliedCouponCode,
+                  discountAmount: discountAmount,
+                  finalPrice: payablePrice,
                 );
 
                 if (!context.mounted) return;
@@ -253,6 +261,104 @@ class _BookingPageState extends State<BookingPage> {
                   },
                 ),
 
+
+
+
+              const SizedBox(height: 20),
+
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'كود الخصم',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: couponController,
+                              decoration: const InputDecoration(
+                                hintText: 'مثال: LAMSA20',
+                                prefixIcon: Icon(Icons.discount_outlined),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton(
+                            onPressed: isApplyingCoupon
+                                ? null
+                                : () async {
+                              try {
+                                setState(() => isApplyingCoupon = true);
+
+                                final coupon = await _controller.applyCoupon(
+                                  code: couponController.text,
+                                  salonId: widget.salonId,
+                                  totalPrice: totalPrice,
+                                );
+
+                                setState(() {
+                                  appliedCouponCode = coupon.code;
+                                  discountAmount = coupon.discountAmount;
+                                  finalPrice = coupon.finalPrice;
+                                  isApplyingCoupon = false;
+                                });
+
+                                if (!context.mounted) return;
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'تم تطبيق الخصم: ${coupon.discountAmount.toStringAsFixed(2)} ر.س',
+                                    ),
+                                  ),
+                                );
+                              } catch (e) {
+                                setState(() {
+                                  appliedCouponCode = null;
+                                  discountAmount = 0;
+                                  finalPrice = 0;
+                                  isApplyingCoupon = false;
+                                });
+
+                                if (!context.mounted) return;
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      e.toString().replaceFirst('Exception: ', ''),
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                            child: Text(isApplyingCoupon ? '...' : 'تطبيق'),
+                          ),
+                        ],
+                      ),
+                      if (appliedCouponCode != null) ...[
+                        const SizedBox(height: 10),
+                        Text(
+                          'تم تطبيق الكوبون: $appliedCouponCode',
+                          style: const TextStyle(
+                            color: Colors.green,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 20),
 
               Card(
@@ -266,8 +372,18 @@ class _BookingPageState extends State<BookingPage> {
                       ),
                       const Divider(),
                       BookingSummaryRow(
-                        title: 'الإجمالي',
+                        title: 'السعر قبل الخصم',
                         value: '$totalPrice ر.س',
+                      ),
+                      const Divider(),
+                      BookingSummaryRow(
+                        title: 'الخصم',
+                        value: '- $discountAmount ر.س',
+                      ),
+                      const Divider(),
+                      BookingSummaryRow(
+                        title: 'المبلغ النهائي',
+                        value: '$payablePrice ر.س',
                         isBold: true,
                       ),
                     ],
@@ -283,37 +399,6 @@ class _BookingPageState extends State<BookingPage> {
     );
   }
 
-  // String _slotKey(DateTime date, String time) {
-  //   final parts = time.split(' ');
-  //   final clock = parts[0];
-  //   final period = parts[1];
-  //
-  //   final hourMinute = clock.split(':');
-  //   int hour = int.parse(hourMinute[0]);
-  //   final minute = int.parse(hourMinute[1]);
-  //
-  //   if (period == 'م' && hour != 12) {
-  //     hour += 12;
-  //   } else if (period == 'ص' && hour == 12) {
-  //     hour = 0;
-  //   }
-  //
-  //   final appointmentAt = DateTime(
-  //     date.year,
-  //     date.month,
-  //     date.day,
-  //     hour,
-  //     minute,
-  //   );
-  //
-  //   final year = appointmentAt.year.toString();
-  //   final month = appointmentAt.month.toString().padLeft(2, '0');
-  //   final day = appointmentAt.day.toString().padLeft(2, '0');
-  //   final hourText = appointmentAt.hour.toString().padLeft(2, '0');
-  //   final minuteText = appointmentAt.minute.toString().padLeft(2, '0');
-  //
-  //   return '${year}${month}${day}_${hourText}${minuteText}';
-  // }
 
   Future<void> loadBookedSlots(DateTime date) async {
     setState(() {
@@ -351,6 +436,10 @@ class _BookingPageState extends State<BookingPage> {
     }
   }
 
+  double get payablePrice {
+    final price = totalPrice - discountAmount;
+    return price < 0 ? 0 : price;
+  }
 }
 
 

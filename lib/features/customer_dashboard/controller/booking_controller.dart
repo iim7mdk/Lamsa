@@ -4,6 +4,7 @@ import 'package:lamsa/features/customer_dashboard/model/booking_model.dart';
 import 'package:lamsa/features/owner_dashboard/model/service_model.dart';
 import 'package:lamsa/features/customer_dashboard/service/booking_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:lamsa/features/customer_dashboard/service/coupon_service.dart';
 
 
 class BookingController {
@@ -259,6 +260,9 @@ class BookingController {
     required DateTime? selectedDate,
     required String? selectedTime,
     required String status,
+    required String? couponCode,
+    required double discountAmount,
+    required double finalPrice,
     required dynamic createdAt,
   }) async {
     if (selectedServices.isEmpty) {
@@ -286,6 +290,9 @@ class BookingController {
       bankReceiptNumber: null,
       appointmentAt: appointmentAt,
       status: status,
+      couponCode: couponCode,
+      discountAmount: discountAmount,
+      finalPrice: finalPrice,
       createdAt: createdAt,
     );
 
@@ -300,6 +307,9 @@ class BookingController {
     required double totalPrice,
     required DateTime? selectedDate,
     required String? selectedTime,
+    String? couponCode,
+    double discountAmount = 0,
+    double? finalPrice,
   }) async {
     final user = FirebaseAuth.instance.currentUser;
 
@@ -335,6 +345,9 @@ class BookingController {
       selectedDate: selectedDate,
       selectedTime: selectedTime,
       status: 'pending',
+      couponCode: couponCode,
+      discountAmount: discountAmount,
+      finalPrice: finalPrice ?? totalPrice,
       createdAt: DateTime.now(),
     );
 
@@ -422,6 +435,20 @@ class BookingController {
 
       return !bookedSlots.contains(slotKey);
     }).toList();
+  }
+
+  final CouponService _couponService = CouponService();
+
+  Future<AppliedCoupon> applyCoupon({
+    required String code,
+    required String salonId,
+    required double totalPrice,
+  }) async {
+    return _couponService.validateCoupon(
+      code: code,
+      salonId: salonId,
+      totalPrice: totalPrice,
+    );
   }
 
 }

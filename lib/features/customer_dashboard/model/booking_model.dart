@@ -11,7 +11,10 @@ class BookingModel {
   final String? bankReceiptNumber;
   final DateTime appointmentAt;
   final String status;
-  final String? paymentStatus;  // ← تم إضافته بشكل صحيح
+  final String? paymentStatus;
+  final String? couponCode;
+  final double discountAmount;
+  final double finalPrice;
   final DateTime createdAt;
 
   const BookingModel({
@@ -26,6 +29,9 @@ class BookingModel {
     this.paymentStatus,
     required this.appointmentAt,
     required this.status,
+    this.couponCode,
+    this.discountAmount = 0,
+    required this.finalPrice,
     required this.createdAt,
   });
 
@@ -42,6 +48,11 @@ class BookingModel {
       paymentStatus: map['paymentStatus'] as String?,
       appointmentAt: (map['appointmentAt'] as Timestamp).toDate(),
       status: map['status'] as String? ?? 'pending',
+      couponCode: map['couponCode'] as String?,
+      discountAmount: (map['discountAmount'] as num?)?.toDouble() ?? 0.0,
+      finalPrice: (map['finalPrice'] as num?)?.toDouble() ??
+          (map['totalPrice'] as num?)?.toDouble() ??
+          0.0,
       createdAt: (map['createdAt'] as Timestamp).toDate(),
     );
   }
@@ -58,6 +69,9 @@ class BookingModel {
       'paymentStatus': paymentStatus,
       'appointmentAt': Timestamp.fromDate(appointmentAt),
       'status': status,
+      'couponCode': couponCode,
+      'discountAmount': discountAmount,
+      'finalPrice': finalPrice,
       'createdAt': Timestamp.fromDate(createdAt),
     };
   }
