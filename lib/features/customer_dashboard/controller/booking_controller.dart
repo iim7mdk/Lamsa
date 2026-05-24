@@ -106,11 +106,20 @@ class BookingController {
       final data = doc.data();
 
       final createdAt = data['createdAt'];
+      final salonId = data['salonId']?.toString() ?? '';
+      final appointmentAtValue = data['appointmentAt'];
 
       if (createdAt is Timestamp) {
         final createdDate = createdAt.toDate();
 
         if (createdDate.isBefore(expiredTime)) {
+          if (appointmentAtValue is Timestamp && salonId.isNotEmpty) {
+            await _service.releaseSlot(
+              salonId: salonId,
+              appointmentAt: appointmentAtValue.toDate(),
+            );
+          }
+
           await doc.reference.delete();
         }
       }
@@ -210,16 +219,34 @@ class BookingController {
     }
   }
 
-  Future<void> updateBookingStatus({
+  Future updateBookingStatus({
     required String bookingId,
     required String status,
   }) async {
-    await _firestore
-        .collection('bookings')
-        .doc(bookingId)
-        .update({
+    final bookingRef = _firestore.collection('bookings').doc(bookingId);
+    final bookingDoc = await bookingRef.get();
+
+    if (!bookingDoc.exists) {
+      throw Exception('الحجز غير موجود');
+    }
+
+    final data = bookingDoc.data()!;
+    final salonId = data['salonId']?.toString() ?? '';
+    final appointmentAtValue = data['appointmentAt'];
+
+    await bookingRef.update({
       'status': status,
+      'updatedAt': FieldValue.serverTimestamp(),
     });
+
+    if (status == 'rejected' || status == 'cancelled') {
+      if (appointmentAtValue is Timestamp && salonId.isNotEmpty) {
+        await _service.releaseSlot(
+          salonId: salonId,
+          appointmentAt: appointmentAtValue.toDate(),
+        );
+      }
+    }
   }
 
   Future<String> confirmBooking({
@@ -246,7 +273,7 @@ class BookingController {
       throw Exception('اختاري وقت الحجز');
     }
 
-    final appointmentAt = _combineDateAndTime(selectedDate, selectedTime);
+    final appointmentAt = combineDateAndTime(selectedDate, selectedTime);
 
     final booking = BookingModel(
       id: '',
@@ -266,31 +293,6 @@ class BookingController {
 
     return bookingId;
   }
-
-  DateTime _combineDateAndTime(DateTime date, String time) {
-    final parts = time.split(' ');
-    final clock = parts[0];
-    final period = parts[1];
-
-    final hourMinute = clock.split(':');
-    int hour = int.parse(hourMinute[0]);
-    final minute = int.parse(hourMinute[1]);
-
-    if (period == 'م' && hour != 12) {
-      hour += 12;
-    } else if (period == 'ص' && hour == 12) {
-      hour = 0;
-    }
-
-    return DateTime(
-      date.year,
-      date.month,
-      date.day,
-      hour,
-      minute,
-    );
-  }
-
 
   Future<String> createBookingAndValidate({
     required String salonId,
@@ -372,6 +374,56 @@ class BookingController {
       print('حدث خطأ أثناء رفع رقم السند: $e');
     }
   }
+
+  Future<List<String>> getBookedSlots({
+    required String salonId,
+    required DateTime selectedDate,
+  }) async {
+    return _service.getBookedSlots(
+      salonId: salonId,
+      selectedDate: selectedDate,
+    );
+  }
+
+  DateTime combineDateAndTime(DateTime date, String time) {
+    final parts = time.split(' ');
+    final clock = parts[0];
+    final period = parts[1];
+
+    final hourMinute = clock.split(':');
+    int hour = int.parse(hourMinute[0]);
+    final minute = int.parse(hourMinute[1]);
+
+    if (period == 'م' && hour != 12) {
+      hour += 12;
+    } else if (period == 'ص' && hour == 12) {
+      hour = 0;
+    }
+
+    return DateTime(
+      date.year,
+      date.month,
+      date.day,
+      hour,
+      minute,
+    );
+  }
+
+  List<String> getAvailableTimes({
+    required List<String> availableTimes,
+    required DateTime? selectedDate,
+    required List<String> bookedSlots,
+  }) {
+    if (selectedDate == null) return availableTimes;
+
+    return availableTimes.where((time) {
+      final appointmentAt = combineDateAndTime(selectedDate, time);
+      final slotKey = _service.slotKeyFromDateTime(appointmentAt);
+
+      return !bookedSlots.contains(slotKey);
+    }).toList();
+  }
+
 }
 
 class BookingExtraData {

@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:lamsa/features/customer_dashboard/controller/booking_controller.dart';
 import 'package:lamsa/features/customer_dashboard/service/booking_service.dart';
+import 'package:lamsa/features/customer_dashboard/view/widgets/booking_summary_row.dart';
 import 'package:lamsa/features/owner_dashboard/model/service_model.dart';
 import 'payment_page.dart';
+import '../widgets/booking_header_card.dart';
+import '../widgets/booking_section_title.dart';
+import '../widgets/empty_services_card.dart';
 
 class BookingPage extends StatefulWidget {
   final String salonId;
@@ -26,16 +30,18 @@ class _BookingPageState extends State<BookingPage> {
   final List<Service> selectedServices = [];
   DateTime? selectedDate;
   String? selectedTime;
+  List<String> bookedSlots = [];
+  bool isLoadingBookedSlots = false;
 
   final List<String> availableTimes = [
+    '9:00 ص',
     '10:00 ص',
     '11:00 ص',
     '12:00 م',
-    '1:00 م',
-    '2:00 م',
-    '3:00 م',
     '4:00 م',
     '5:00 م',
+    '6:00 م',
+    '7:00 م',
   ];
 
   Future<void> pickDate() async {
@@ -49,7 +55,12 @@ class _BookingPageState extends State<BookingPage> {
     );
 
     if (pickedDate != null) {
-      setState(() => selectedDate = pickedDate);
+      setState(() {
+        selectedDate = pickedDate;
+        selectedTime = null;
+      });
+
+      await loadBookedSlots(pickedDate);
     }
   }
 
@@ -125,7 +136,7 @@ class _BookingPageState extends State<BookingPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _HeaderCard(
+              BookingHeaderCard(
                 salonTitle: widget.salonTitle,
                 selectedCount: selectedServices.length,
                 totalPrice: totalPrice,
@@ -133,7 +144,7 @@ class _BookingPageState extends State<BookingPage> {
 
               const SizedBox(height: 20),
 
-              _SectionTitle(
+              BookingSectionTitle(
                 title: 'اختاري الخدمات',
                 icon: Icons.spa_outlined,
               ),
@@ -141,7 +152,7 @@ class _BookingPageState extends State<BookingPage> {
               const SizedBox(height: 12),
 
               if (widget.services.isEmpty)
-                const _EmptyServicesCard()
+                const EmptyServicesCard()
               else
                 ...widget.services.map(
                       (service) {
@@ -184,7 +195,7 @@ class _BookingPageState extends State<BookingPage> {
 
               const SizedBox(height: 20),
 
-              _SectionTitle(
+              BookingSectionTitle(
                 title: 'اختاري التاريخ',
                 icon: Icons.calendar_month_outlined,
               ),
@@ -206,29 +217,41 @@ class _BookingPageState extends State<BookingPage> {
 
               const SizedBox(height: 20),
 
-              _SectionTitle(
+              BookingSectionTitle(
                 title: 'اختاري الوقت',
                 icon: Icons.access_time,
               ),
 
               const SizedBox(height: 12),
 
-              DropdownButtonFormField<String>(
-                value: selectedTime,
-                decoration: const InputDecoration(
-                  hintText: 'اختاري وقتًا متاحًا',
-                  prefixIcon: Icon(Icons.schedule),
+              if (isLoadingBookedSlots)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(12),
+                    child: CircularProgressIndicator(),
+                  ),
+                )
+              else
+                DropdownButtonFormField<String>(
+                  value: selectedTime,
+                  decoration: const InputDecoration(
+                    hintText: 'اختاري وقتًا متاحًا',
+                    prefixIcon: Icon(Icons.schedule),
+                  ),
+                  items: _controller.getAvailableTimes(
+                    availableTimes: availableTimes,
+                    selectedDate: selectedDate,
+                    bookedSlots: bookedSlots,
+                  ).map((time) {
+                    return DropdownMenuItem<String>(
+                      value: time,
+                      child: Text(time),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() => selectedTime = value);
+                  },
                 ),
-                items: availableTimes.map((time) {
-                  return DropdownMenuItem<String>(
-                    value: time,
-                    child: Text(time),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() => selectedTime = value);
-                },
-              ),
 
               const SizedBox(height: 20),
 
@@ -237,12 +260,12 @@ class _BookingPageState extends State<BookingPage> {
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      _SummaryRow(
+                      BookingSummaryRow(
                         title: 'عدد الخدمات',
                         value: '${selectedServices.length}',
                       ),
                       const Divider(),
-                      _SummaryRow(
+                      BookingSummaryRow(
                         title: 'الإجمالي',
                         value: '$totalPrice ر.س',
                         isBold: true,
@@ -259,144 +282,75 @@ class _BookingPageState extends State<BookingPage> {
       ),
     );
   }
-}
 
-class _HeaderCard extends StatelessWidget {
-  final String salonTitle;
-  final int selectedCount;
-  final double totalPrice;
+  // String _slotKey(DateTime date, String time) {
+  //   final parts = time.split(' ');
+  //   final clock = parts[0];
+  //   final period = parts[1];
+  //
+  //   final hourMinute = clock.split(':');
+  //   int hour = int.parse(hourMinute[0]);
+  //   final minute = int.parse(hourMinute[1]);
+  //
+  //   if (period == 'م' && hour != 12) {
+  //     hour += 12;
+  //   } else if (period == 'ص' && hour == 12) {
+  //     hour = 0;
+  //   }
+  //
+  //   final appointmentAt = DateTime(
+  //     date.year,
+  //     date.month,
+  //     date.day,
+  //     hour,
+  //     minute,
+  //   );
+  //
+  //   final year = appointmentAt.year.toString();
+  //   final month = appointmentAt.month.toString().padLeft(2, '0');
+  //   final day = appointmentAt.day.toString().padLeft(2, '0');
+  //   final hourText = appointmentAt.hour.toString().padLeft(2, '0');
+  //   final minuteText = appointmentAt.minute.toString().padLeft(2, '0');
+  //
+  //   return '${year}${month}${day}_${hourText}${minuteText}';
+  // }
 
-  const _HeaderCard({
-    required this.salonTitle,
-    required this.selectedCount,
-    required this.totalPrice,
-  });
+  Future<void> loadBookedSlots(DateTime date) async {
+    setState(() {
+      isLoadingBookedSlots = true;
+      selectedTime = null;
+    });
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    try {
+      final slots = await _controller.getBookedSlots(
+        salonId: widget.salonId,
+        selectedDate: date,
+      );
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            theme.colorScheme.primary,
-            theme.colorScheme.primary.withOpacity(0.72),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Row(
-        children: [
-          const CircleAvatar(
-            radius: 28,
-            backgroundColor: Colors.white24,
-            child: Icon(
-              Icons.event_available,
-              color: Colors.white,
-              size: 30,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  salonTitle,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'الخدمات المختارة: $selectedCount | الإجمالي: $totalPrice ر.س',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+      if (!mounted) return;
 
-class _SectionTitle extends StatelessWidget {
-  final String title;
-  final IconData icon;
+      setState(() {
+        bookedSlots = slots;
+        isLoadingBookedSlots = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
 
-  const _SectionTitle({
-    required this.title,
-    required this.icon,
-  });
+      setState(() {
+        bookedSlots = [];
+        isLoadingBookedSlots = false;
+      });
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Row(
-      children: [
-        Icon(icon, color: theme.colorScheme.primary),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e.toString().replaceFirst('Exception: ', ''),
           ),
         ),
-      ],
-    );
+      );
+    }
   }
+
 }
 
-class _SummaryRow extends StatelessWidget {
-  final String title;
-  final String value;
-  final bool isBold;
 
-  const _SummaryRow({
-    required this.title,
-    required this.value,
-    this.isBold = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final style = TextStyle(
-      fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-      fontSize: isBold ? 17 : 15,
-    );
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(title, style: style),
-        Text(value, style: style),
-      ],
-    );
-  }
-}
-
-class _EmptyServicesCard extends StatelessWidget {
-  const _EmptyServicesCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Card(
-      child: Padding(
-        padding: EdgeInsets.all(18),
-        child: Center(
-          child: Text('لا توجد خدمات متاحة حالياً'),
-        ),
-      ),
-    );
-  }
-}
