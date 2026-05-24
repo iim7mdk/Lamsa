@@ -194,6 +194,11 @@ class _BookingPageState extends State<BookingPage> {
                             } else {
                               selectedServices.remove(service);
                             }
+
+                            appliedCouponCode = null;
+                            discountAmount = 0;
+                            finalPrice = 0;
+                            couponController.clear();
                           });
                         },
                       ),
@@ -440,6 +445,13 @@ class _BookingPageState extends State<BookingPage> {
     final price = totalPrice - discountAmount;
     return price < 0 ? 0 : price;
   }
+
+  @override
+  void dispose() {
+    couponController.dispose();
+    super.dispose();
+  }
+
 }
 
 
