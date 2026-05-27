@@ -147,6 +147,9 @@ class _BookingCardState extends State<_BookingCard> {
     final totalPrice =
     _bookingController.formatPrice(widget.data['totalPrice']);
 
+    final finalPrice =
+    _bookingController.formatPrice(widget.data['finalPrice']);
+
     final bookingStatus = widget.data['status']?.toString() ?? 'pending';
     final bankReceiptNumber =
         widget.data['bankReceiptNumber']?.toString() ?? '';
@@ -251,6 +254,11 @@ class _BookingCardState extends State<_BookingCard> {
                         value: totalPrice,
                       ),
 
+                      _InfoRow(
+                        title: 'الإجمالي بعد الخصم',
+                        value: finalPrice,
+                      ),
+
                       if (bankReceiptNumber.isNotEmpty)
                         _InfoRow(
                           title: 'رقم السند',
@@ -305,6 +313,8 @@ class _BookingCardState extends State<_BookingCard> {
       },
     );
   }
+
+
 }
 
 class _InfoRow extends StatelessWidget {

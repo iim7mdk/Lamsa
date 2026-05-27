@@ -134,7 +134,7 @@ class _BookingPageState extends State<BookingPage> {
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: Text(
-                totalPrice == 0 ? 'اختاري خدمة أولاً' : 'المتابعة للدفع - $totalPrice ر.س',
+                totalPrice == 0 ? 'اختاري خدمة أولاً' : 'المتابعة للدفع - $payablePrice ر.س',
               ),
             ),
           ),
