@@ -4,6 +4,8 @@ import 'package:lamsa/features/owner_dashboard/model/bank_account_model.dart';
 import 'package:lamsa/features/owner_dashboard/model/salon_model.dart';
 import 'package:lamsa/features/owner_dashboard/model/service_model.dart';
 import '../widgets/salon_card.dart';
+import 'package:flutter/services.dart';
+
 
 class SalonListPage extends StatelessWidget {
   const SalonListPage({super.key});
@@ -100,6 +102,10 @@ class SalonListPage extends StatelessWidget {
                 _HeaderCard(
                   count: salons.length,
                 ),
+
+                const SizedBox(height: 14),
+
+                const _CouponPromoCard(),
 
                 const SizedBox(height: 16),
 
@@ -201,6 +207,143 @@ class _HeaderCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _CouponPromoCard extends StatelessWidget {
+  const _CouponPromoCard();
+
+  static const String couponCode = 'LAMSA20';
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(24),
+        onTap: () async {
+          await Clipboard.setData(
+            const ClipboardData(text: couponCode),
+          );
+
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('تم نسخ كود الخصم LAMSA20'),
+              ),
+            );
+          }
+        },
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                theme.colorScheme.secondary,
+                theme.colorScheme.primary,
+              ],
+            ),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: theme.colorScheme.primary.withOpacity(0.20),
+                blurRadius: 18,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                left: -18,
+                top: -18,
+                child: Icon(
+                  Icons.local_offer,
+                  size: 90,
+                  color: Colors.white.withOpacity(0.10),
+                ),
+              ),
+              Row(
+                children: [
+                  Container(
+                    width: 58,
+                    height: 58,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.18),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: const Icon(
+                      Icons.discount_outlined,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'خصم خاص لكِ',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'استخدمي الكود عند الحجز واحصلي على عرض مميز',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.90),
+                            fontSize: 13,
+                            height: 1.4,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 9,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                couponCode,
+                                style: TextStyle(
+                                  color: theme.colorScheme.primary,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Icon(
+                                Icons.copy,
+                                color: theme.colorScheme.primary,
+                                size: 18,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
