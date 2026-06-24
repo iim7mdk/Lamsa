@@ -7,8 +7,37 @@ import '../widgets/salon_card.dart';
 import 'package:flutter/services.dart';
 
 
-class SalonListPage extends StatelessWidget {
+class SalonListPage extends StatefulWidget {
   const SalonListPage({super.key});
+
+  @override
+  State<SalonListPage> createState() => _SalonListPageState();
+}
+
+class _SalonListPageState extends State<SalonListPage> {
+  late Future<List<SalonModel>> _salonsFuture;
+
+  final TextEditingController _searchController = TextEditingController();
+
+  String _selectedLocation = 'الكل';
+  String _selectedService = 'الكل';
+  String _selectedSort = 'بدون ترتيب';
+
+  @override
+  void initState() {
+    super.initState();
+    _salonsFuture = _getSalonsFromFirestore();
+
+    _searchController.addListener(() {
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   Future<List<SalonModel>> _getSalonsFromFirestore() async {
     try {
@@ -34,17 +63,21 @@ class SalonListPage extends StatelessWidget {
             .get();
 
         final servicesList = servicesQuerySnapshot.docs
-            .map((serviceDoc) => Service.fromMap(
-          serviceDoc.id,
-          serviceDoc.data(),
-        ))
+            .map(
+              (serviceDoc) => Service.fromMap(
+            serviceDoc.id,
+            serviceDoc.data(),
+          ),
+        )
             .toList();
 
         final bankAccountsList = bankAccountsQuerySnapshot.docs
-            .map((accountDoc) => BankAccount.fromMap(
-          accountDoc.id,
-          accountDoc.data(),
-        ))
+            .map(
+              (accountDoc) => BankAccount.fromMap(
+            accountDoc.id,
+            accountDoc.data(),
+          ),
+        )
             .toList();
 
         return SalonModel(
@@ -67,6 +100,84 @@ class SalonListPage extends StatelessWidget {
     }
   }
 
+  String _normalize(String value) {
+    return value
+        .trim()
+        .toLowerCase()
+        .replaceAll('أ', 'ا')
+        .replaceAll('إ', 'ا')
+        .replaceAll('آ', 'ا')
+        .replaceAll('ة', 'ه')
+        .replaceAll(RegExp(r'\s+'), ' ');
+  }
+
+  bool _matchesFilters(
+      SalonModel salon,
+      String selectedLocation,
+      String selectedService,
+      ) {
+    final searchText = _normalize(_searchController.text);
+
+    final salonName = _normalize(salon.salonName);
+    final location = _normalize(salon.location);
+
+    final servicesText = _normalize(
+      salon.services.map((service) => service.name).join(' '),
+    );
+
+    final matchesSearch = searchText.isEmpty ||
+        salonName.contains(searchText) ||
+        location.contains(searchText) ||
+        servicesText.contains(searchText);
+
+    final matchesLocation = selectedLocation == 'الكل' ||
+        salon.location.trim() == selectedLocation;
+
+    final matchesService = selectedService == 'الكل' ||
+        salon.services.any((service) => service.name.trim() == selectedService);
+
+    return matchesSearch && matchesLocation && matchesService;
+  }
+
+  void _sortSalons(List<SalonModel> salons) {
+    if (_selectedSort == 'أبجديًا') {
+      salons.sort(
+            (a, b) => _normalize(a.salonName).compareTo(_normalize(b.salonName)),
+      );
+    } else if (_selectedSort == 'الأكثر خدمات') {
+      salons.sort((a, b) => b.services.length.compareTo(a.services.length));
+    } else if (_selectedSort == 'الأقل خدمات') {
+      salons.sort((a, b) => a.services.length.compareTo(b.services.length));
+    }
+  }
+
+  Future<void> _refreshSalons() async {
+    final future = _getSalonsFromFirestore();
+
+    setState(() {
+      _salonsFuture = future;
+    });
+
+    await future;
+  }
+
+  void _clearFilters() {
+    _searchController.clear();
+
+    setState(() {
+      _selectedLocation = 'الكل';
+      _selectedService = 'الكل';
+      _selectedSort = 'بدون ترتيب';
+    });
+  }
+
+  String _safeValue(String selectedValue, List<String> items) {
+    if (items.contains(selectedValue)) {
+      return selectedValue;
+    }
+    return 'الكل';
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -74,7 +185,7 @@ class SalonListPage extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: FutureBuilder<List<SalonModel>>(
-        future: _getSalonsFromFirestore(),
+        future: _salonsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return _LoadingView(theme: theme);
@@ -92,15 +203,46 @@ class SalonListPage extends StatelessWidget {
             return const _EmptyView();
           }
 
+          final locations = salons
+              .map((salon) => salon.location.trim())
+              .where((location) => location.isNotEmpty)
+              .toSet()
+              .toList()
+            ..sort();
+
+          final services = salons
+              .expand((salon) => salon.services)
+              .map((service) => service.name.trim())
+              .where((serviceName) => serviceName.isNotEmpty)
+              .toSet()
+              .toList()
+            ..sort();
+
+          final locationItems = ['الكل', ...locations];
+          final serviceItems = ['الكل', ...services];
+
+          final safeLocation = _safeValue(_selectedLocation, locationItems);
+          final safeService = _safeValue(_selectedService, serviceItems);
+
+          final filteredSalons = salons
+              .where(
+                (salon) => _matchesFilters(
+              salon,
+              safeLocation,
+              safeService,
+            ),
+          )
+              .toList();
+
+          _sortSalons(filteredSalons);
+
           return RefreshIndicator(
-            onRefresh: () async {
-              await _getSalonsFromFirestore();
-            },
+            onRefresh: _refreshSalons,
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
               children: [
                 _HeaderCard(
-                  count: salons.length,
+                  count: filteredSalons.length,
                 ),
 
                 const SizedBox(height: 14),
@@ -109,6 +251,138 @@ class SalonListPage extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
+                TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'ابحثي باسم الصالون أو الخدمة أو الموقع',
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _searchController.text.isEmpty
+                        ? null
+                        : IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        _searchController.clear();
+                      },
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    filled: true,
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: safeLocation,
+                        isExpanded: true,
+                        decoration: InputDecoration(
+                          labelText: 'الموقع',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                        ),
+                        items: locationItems
+                            .map(
+                              (location) => DropdownMenuItem(
+                            value: location,
+                            child: Text(location),
+                          ),
+                        )
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedLocation = value ?? 'الكل';
+                          });
+                        },
+                      ),
+                    ),
+
+                    const SizedBox(width: 10),
+
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: safeService,
+                        isExpanded: true,
+                        decoration: InputDecoration(
+                          labelText: 'الخدمة',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                        ),
+                        items: serviceItems
+                            .map(
+                              (service) => DropdownMenuItem(
+                            value: service,
+                            child: Text(service),
+                          ),
+                        )
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedService = value ?? 'الكل';
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 12),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: _selectedSort,
+                        isExpanded: true,
+                        decoration: InputDecoration(
+                          labelText: 'الترتيب',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'بدون ترتيب',
+                            child: Text('بدون ترتيب'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'أبجديًا',
+                            child: Text('أبجديًا'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'الأكثر خدمات',
+                            child: Text('الأكثر خدمات'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'الأقل خدمات',
+                            child: Text('الأقل خدمات'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedSort = value ?? 'بدون ترتيب';
+                          });
+                        },
+                      ),
+                    ),
+
+                    const SizedBox(width: 10),
+
+                    OutlinedButton.icon(
+                      onPressed: _clearFilters,
+                      icon: const Icon(Icons.restart_alt),
+                      label: const Text('مسح'),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 18),
+
                 Text(
                   'الصوالين المتاحة',
                   style: theme.textTheme.titleLarge?.copyWith(
@@ -116,14 +390,53 @@ class SalonListPage extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(height: 10),
+                const SizedBox(height: 6),
 
-                ...salons.map(
-                      (salon) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: SalonCard(salon: salon),
+                Text(
+                  'عدد النتائج: ${filteredSalons.length}',
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
                   ),
                 ),
+
+                const SizedBox(height: 10),
+
+                if (filteredSalons.isEmpty)
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(22),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.search_off,
+                            size: 44,
+                            color: theme.colorScheme.primary,
+                          ),
+                          const SizedBox(height: 10),
+                          const Text(
+                            'لا توجد نتائج مطابقة',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'جرّبي تغيير كلمة البحث أو الفلترة',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  ...filteredSalons.map(
+                        (salon) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: SalonCard(salon: salon),
+                    ),
+                  ),
               ],
             ),
           );
