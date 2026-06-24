@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:lamsa/features/customer_dashboard/service/review_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class CommentsAndRatingSection extends StatefulWidget {
   final String salonId;
@@ -296,6 +297,10 @@ class _CommentsAndRatingSectionState extends State<CommentsAndRatingSection> {
                 final userName = data['userName']?.toString() ?? 'مستخدم';
                 final text = data['text']?.toString() ?? '';
 
+                final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+                final commentUserId = data['userId']?.toString();
+                final canDelete = currentUserId != null && currentUserId == commentUserId;
+
                 return Card(
                   margin: const EdgeInsets.only(bottom: 8),
                   child: ListTile(
@@ -307,6 +312,60 @@ class _CommentsAndRatingSectionState extends State<CommentsAndRatingSection> {
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text(text),
+                    trailing: canDelete
+                        ? IconButton(
+                      icon: const Icon(
+                        Icons.delete_outline,
+                        color: Colors.red,
+                      ),
+                      tooltip: 'حذف التعليق',
+                      onPressed: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              title: const Text('حذف التعليق'),
+                              content: const Text('هل أنت متأكد من حذف هذا التعليق؟'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, false),
+                                  child: const Text('إلغاء'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: const Text(
+                                    'حذف',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+
+                        if (confirm != true) return;
+
+                        try {
+                          await _reviewService.deleteComment(
+                            salonId: widget.salonId,
+                            commentId: doc.id,
+                          );
+
+                          if (!context.mounted) return;
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('تم حذف التعليق')),
+                          );
+                        } catch (e) {
+                          if (!context.mounted) return;
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(e.toString())),
+                          );
+                        }
+                      },
+                    )
+                        : null,
                   ),
                 );
               }).toList(),

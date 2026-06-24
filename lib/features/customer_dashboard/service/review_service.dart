@@ -170,4 +170,18 @@ class ReviewService {
       });
     });
   }
+
+  Future<void> deleteComment({
+    required String salonId,
+    required String commentId,
+  }) async {
+    final user = _auth.currentUser;
+
+    if (user == null) {
+      throw Exception('يجب تسجيل الدخول لحذف التعليق');
+    }
+
+    await _commentsRef(salonId).doc(commentId).delete();
+  }
+
 }
