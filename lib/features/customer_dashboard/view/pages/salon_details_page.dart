@@ -5,6 +5,7 @@ import 'package:lamsa/features/owner_dashboard/model/salon_model.dart';
 
 import 'booking_page.dart';
 
+
 class SalonDetailsPage extends StatelessWidget {
   final SalonModel salon;
 
@@ -756,3 +757,4 @@ class _StateCard extends StatelessWidget {
     );
   }
 }
+

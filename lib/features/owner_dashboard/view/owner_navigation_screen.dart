@@ -22,8 +22,8 @@ class _OwnerNavigationScreenState extends State<OwnerNavigationScreen> {
 
   final List<String> titles = const [
     'لوحة التحكم',
-    'معلومات الصالون',
     'الإدارة',
+    'معلومات الصالون',
   ];
 
   @override
@@ -76,16 +76,17 @@ class _OwnerNavigationScreenState extends State<OwnerNavigationScreen> {
             ),
 
             BottomNavigationBarItem(
+              icon: Icon(Icons.apps_outlined),
+              activeIcon: Icon(Icons.apps),
+              label: 'الإدارة',
+            ),
+
+            BottomNavigationBarItem(
               icon: Icon(Icons.person_outline),
               activeIcon: Icon(Icons.person),
               label: 'معلومات الصالون',
             ),
 
-            BottomNavigationBarItem(
-              icon: Icon(Icons.apps_outlined),
-              activeIcon: Icon(Icons.apps),
-              label: 'الإدارة',
-            ),
           ],
         ),
       ),

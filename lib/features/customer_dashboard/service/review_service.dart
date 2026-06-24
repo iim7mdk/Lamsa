@@ -15,7 +15,7 @@ class ReviewService {
 
   Stream<QuerySnapshot<Map<String, dynamic>>> commentsStream(String salonId) {
     return _commentsRef(salonId)
-        .orderBy('createdAt', descending: true)
+        .orderBy('createdAt', descending: false)
         .snapshots();
   }
 

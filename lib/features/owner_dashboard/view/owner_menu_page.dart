@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lamsa/features/owner_dashboard/view/owner_bookings_report_page.dart';
 import 'package:lamsa/features/owner_dashboard/view/owner_reports_page.dart';
+import 'package:lamsa/features/owner_dashboard/view/owner_reviews_page.dart';
 
 class OwnerMenuPage extends StatelessWidget {
   const OwnerMenuPage({
@@ -94,6 +95,24 @@ class OwnerMenuPage extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (_) => OwnerReportsPage(
+                    salonId: salonId,
+                  ),
+                ),
+              );
+            },
+          ),
+
+          const SizedBox(height: 12),
+
+          _MenuButton(
+            icon: Icons.reviews,
+            title: 'التعليقات والتقييمات',
+            subtitle: 'عرض تعليقات الزبونات ومتوسط التقييم والرد عليها',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => OwnerReviewsPage(
                     salonId: salonId,
                   ),
                 ),

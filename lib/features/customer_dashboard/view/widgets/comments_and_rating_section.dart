@@ -105,6 +105,44 @@ class _CommentsAndRatingSectionState extends State<CommentsAndRatingSection> {
     }
   }
 
+  String _timeAgo(dynamic value) {
+    if (value == null) return 'الآن';
+
+    DateTime date;
+
+    if (value is Timestamp) {
+      date = value.toDate();
+    } else if (value is DateTime) {
+      date = value;
+    } else {
+      return '';
+    }
+
+    final diff = DateTime.now().difference(date);
+
+    if (diff.inSeconds < 60) {
+      return 'الآن';
+    } else if (diff.inMinutes == 1) {
+      return 'قبل دقيقة';
+    } else if (diff.inMinutes < 60) {
+      return 'قبل ${diff.inMinutes} دقائق';
+    } else if (diff.inHours == 1) {
+      return 'قبل ساعة';
+    } else if (diff.inHours < 24) {
+      return 'قبل ${diff.inHours} ساعات';
+    } else if (diff.inDays == 1) {
+      return 'قبل يوم';
+    } else if (diff.inDays < 7) {
+      return 'قبل ${diff.inDays} أيام';
+    } else if (diff.inDays < 30) {
+      return 'قبل ${(diff.inDays / 7).floor()} أسابيع';
+    } else if (diff.inDays < 365) {
+      return 'قبل ${(diff.inDays / 30).floor()} أشهر';
+    } else {
+      return 'قبل ${(diff.inDays / 365).floor()} سنوات';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -296,76 +334,157 @@ class _CommentsAndRatingSectionState extends State<CommentsAndRatingSection> {
                 final data = doc.data();
                 final userName = data['userName']?.toString() ?? 'مستخدم';
                 final text = data['text']?.toString() ?? '';
-
                 final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+                final timeText = _timeAgo(data['createdAt']);
                 final commentUserId = data['userId']?.toString();
                 final canDelete = currentUserId != null && currentUserId == commentUserId;
+                final ownerReply = data['ownerReply'];
+                String ownerReplyText = '';
+
+                if (ownerReply is Map) {
+                  ownerReplyText = ownerReply['text']?.toString() ?? '';
+                }
 
                 return Card(
                   margin: const EdgeInsets.only(bottom: 8),
-                  child: ListTile(
-                    leading: const CircleAvatar(
-                      child: Icon(Icons.person),
-                    ),
-                    title: Text(
-                      userName,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(text),
-                    trailing: canDelete
-                        ? IconButton(
-                      icon: const Icon(
-                        Icons.delete_outline,
-                        color: Colors.red,
-                      ),
-                      tooltip: 'حذف التعليق',
-                      onPressed: () async {
-                        final confirm = await showDialog<bool>(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: const Text('حذف التعليق'),
-                              content: const Text('هل أنت متأكد من حذف هذا التعليق؟'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context, false),
-                                  child: const Text('إلغاء'),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const CircleAvatar(
+                          child: Icon(Icons.person),
+                        ),
+                        const SizedBox(width: 10),
+
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                userName,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
                                 ),
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context, true),
-                                  child: const Text(
-                                    'حذف',
-                                    style: TextStyle(color: Colors.red),
+                              ),
+                              const SizedBox(height: 6),
+
+                              Text(
+                                text,
+                                style: const TextStyle(height: 1.4),
+                              ),
+
+                              const SizedBox(height: 4),
+
+                              Text(
+                                timeText,
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 12,
+                                ),
+                              ),
+
+                              if (ownerReplyText.trim().isNotEmpty) ...[
+                                const SizedBox(height: 10),
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.pink.shade50,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: Colors.pink.shade100,
+                                    ),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.storefront,
+                                            size: 18,
+                                            color: Colors.pink.shade300,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          const Text(
+                                            'رد صاحبة الصالون',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        ownerReplyText,
+                                        style: const TextStyle(height: 1.4),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
-                            );
-                          },
-                        );
+                            ],
+                          ),
+                        ),
 
-                        if (confirm != true) return;
+                        if (canDelete)
+                          IconButton(
+                            icon: const Icon(
+                              Icons.delete_outline,
+                              color: Colors.red,
+                            ),
+                            tooltip: 'حذف التعليق',
+                            onPressed: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    title: const Text('حذف التعليق'),
+                                    content: const Text(
+                                      'هل أنت متأكد من حذف هذا التعليق؟',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context, false),
+                                        child: const Text('إلغاء'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context, true),
+                                        child: const Text(
+                                          'حذف',
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
 
-                        try {
-                          await _reviewService.deleteComment(
-                            salonId: widget.salonId,
-                            commentId: doc.id,
-                          );
+                              if (confirm != true) return;
 
-                          if (!context.mounted) return;
+                              try {
+                                await _reviewService.deleteComment(
+                                  salonId: widget.salonId,
+                                  commentId: doc.id,
+                                );
 
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('تم حذف التعليق')),
-                          );
-                        } catch (e) {
-                          if (!context.mounted) return;
+                                if (!context.mounted) return;
 
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(e.toString())),
-                          );
-                        }
-                      },
-                    )
-                        : null,
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('تم حذف التعليق')),
+                                );
+                              } catch (e) {
+                                if (!context.mounted) return;
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(e.toString())),
+                                );
+                              }
+                            },
+                          ),
+                      ],
+                    ),
                   ),
                 );
               }).toList(),
@@ -404,3 +523,5 @@ class _StarSelector extends StatelessWidget {
     );
   }
 }
+
+
