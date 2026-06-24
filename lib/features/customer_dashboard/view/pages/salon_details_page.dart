@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lamsa/features/customer_dashboard/view/widgets/comments_and_rating_section.dart';
 import 'package:lamsa/features/owner_dashboard/model/salon_model.dart';
 
 import 'booking_page.dart';
@@ -122,6 +123,11 @@ class SalonDetailsPage extends StatelessWidget {
 
               const SizedBox(height: 20),
 
+              CommentsAndRatingSection(
+                salonId: salon.id,
+              ),
+
+              const SizedBox(height: 20),
               Align(
                 alignment: Alignment.centerRight,
                 child: Text(

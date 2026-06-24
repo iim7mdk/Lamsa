@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lamsa/features/owner_dashboard/view/owner_bookings_report_page.dart';
+import 'package:lamsa/features/owner_dashboard/view/owner_reports_page.dart';
 
 class OwnerMenuPage extends StatelessWidget {
   const OwnerMenuPage({
@@ -81,6 +82,25 @@ class OwnerMenuPage extends StatelessWidget {
               );
             },
           ),
+
+          const SizedBox(height: 12),
+
+          _MenuButton(
+            icon: Icons.analytics,
+            title: 'تقارير وإحصائيات ومعلومات',
+            subtitle: 'عرض ملخص الحجوزات والدخل والحالات والخدمات الأكثر طلبًا',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => OwnerReportsPage(
+                    salonId: salonId,
+                  ),
+                ),
+              );
+            },
+          ),
+
         ],
       ),
     );
