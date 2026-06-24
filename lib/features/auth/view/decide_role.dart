@@ -54,11 +54,74 @@ class DecidePage extends StatelessWidget {
                   );
                 }
 
-                return const Scaffold(
+                return Scaffold(
+                  appBar: AppBar(
+                    title: const Text('حساب قيد المراجعة'),
+                    centerTitle: true,
+                    automaticallyImplyLeading: false,
+                    actions: [
+                      IconButton(
+                        icon: const Icon(Icons.logout),
+                        tooltip: 'تسجيل الخروج',
+                        onPressed: () async {
+                          await authService.signOut();
+
+                          if (!context.mounted) return;
+
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(builder: (_) => const LoginPage()),
+                                (route) => false,
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                   body: Center(
-                    child: Text(
-                      'حسابك كمالك قيد المراجعة.\nلا يمكنك استقبال الحجوزات حتى يتم التحقق من الصالون.',
-                      textAlign: TextAlign.center,
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.hourglass_top,
+                            size: 70,
+                            color: Colors.orange,
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          const Text(
+                            'حسابك كمالك قيد المراجعة.\nلا يمكنك استقبال الحجوزات حتى يتم التحقق من الصالون.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+
+                          const SizedBox(height: 30),
+
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              icon: const Icon(Icons.logout),
+                              label: const Text('تسجيل الخروج'),
+                              onPressed: () async {
+                                await authService.signOut();
+
+                                if (!context.mounted) return;
+
+                                Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const LoginPage()),
+                                      (route) => false,
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
